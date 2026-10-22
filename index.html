@@ -1,0 +1,3011 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>GymTrack! — Simulador iOS & Android</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,700;0,800;0,900;1,900&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F8FAFC;
+      --surface: #FFFFFF;
+      --surface-elevated: #F1F5F9;
+      --menu-bg: #FFFFFF;
+      --border: #E2E8F0;
+      --text: #0F172A;
+      --text-sec: #334155;
+      --muted: #64748B;
+      --input-bg: #F8FAFC;
+      --accent: #090D16;
+      --on-accent: #FFFFFF;
+      --accent-soft: rgba(15, 23, 42, 0.07);
+      --tick-blue: #38BDF8;
+      --tick-blue-soft: rgba(56, 189, 248, 0.11);
+      --orange: #F97316;
+      --blue: #0284C7;
+      --ring-move: #FA114F;
+      --ring-diet: #92E82A;
+      --ring-hydro: #00D7FF;
+    }
+
+    .phone-frame.dark-theme {
+      --bg: #090D16;
+      --surface: #111827;
+      --surface-elevated: #172033;
+      --menu-bg: #0F172A;
+      --border: #1E293B;
+      --text: #F8FAFC;
+      --text-sec: #CBD5E1;
+      --muted: #94A3B8;
+      --input-bg: #0B0F19;
+      --orange: #FB923C;
+      --blue: #38BDF8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    body {
+      background: radial-gradient(circle at top, #1E293B 0%, #090D16 75%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 14px 10px;
+      color: #F8FAFC;
+    }
+
+    .simulator-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    .toolbar-group {
+      display: flex;
+      gap: 5px;
+      background: #0F172A;
+      padding: 5px;
+      border-radius: 999px;
+      border: 1px solid #334155;
+    }
+    .tool-btn {
+      background: transparent;
+      color: #94A3B8;
+      border: none;
+      padding: 6px 13px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tool-btn.active {
+      background: #F8FAFC;
+      color: #090D16;
+    }
+
+    .phone-frame {
+      width: 420px;
+      max-width: 100%;
+      height: 850px;
+      background: var(--bg);
+      color: var(--text);
+      border-radius: 46px;
+      border: 10px solid #1E293B;
+      box-shadow: 0 25px 70px rgba(0,0,0,0.65);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      transition: background 0.25s, color 0.25s;
+    }
+    .phone-frame.android { border-radius: 28px; border-width: 8px; }
+
+    @media (max-width: 560px) {
+      body {
+        padding: 0;
+        background: var(--bg);
+      }
+      .simulator-toolbar,
+      .status-bar {
+        display: none !important;
+      }
+      .phone-frame,
+      .phone-frame.android {
+        width: 100vw;
+        height: 100dvh;
+        min-height: 100vh;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+      }
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 22px 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sec);
+      background: var(--menu-bg);
+    }
+
+    /* LOGO GT! EN CÍRCULO NEGRO CON FUENTE MODERNA BLANCA */
+    .gt-logo-circle {
+      background: #000000;
+      border: 2.5px solid #334155;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .gt-logo-circle.large { width: 132px; height: 132px; border-width: 3px; }
+    .gt-logo-circle.small { width: 38px; height: 38px; border-width: 1.5px; box-shadow: 0 4px 10px rgba(0,0,0,0.25); }
+    .gt-logo-letters {
+      color: #FFFFFF;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: -1.5px;
+      line-height: 1;
+    }
+    .gt-logo-circle.large .gt-logo-letters { font-size: 48px; }
+    .gt-logo-circle.small .gt-logo-letters { font-size: 15px; letter-spacing: -0.8px; }
+
+    .header-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--accent);
+    }
+
+    .brand-title-large {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 36px;
+      letter-spacing: -0.8px;
+      margin-top: 18px;
+      color: var(--text);
+    }
+    .brand-tagline {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 2.4px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    .brand-author {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      color: var(--muted);
+      opacity: 0.8;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .intro-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 70px 28px 44px;
+      text-align: center;
+      animation: fadeInScale 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      background: var(--menu-bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-row { display: flex; align-items: center; gap: 8px; }
+    .app-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+    .app-sub { font-size: 11px; color: var(--muted); font-weight: 600; }
+
+    .step-dots { display: flex; gap: 5px; align-items: center; }
+    .step-dot { height: 8px; width: 8px; border-radius: 4px; background: var(--border); transition: all 0.25s; }
+    .step-dot.active { width: 20px; background: var(--accent); }
+    .step-dot.done { background: var(--accent); }
+
+    .screen-body { flex: 1; overflow-y: auto; padding: 14px; }
+    .screen-body::-webkit-scrollbar { width: 5px; }
+    .screen-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    /* INDICADOR TICS: MODERNO (CUADRADO) VS CLÁSICO (CÍRCULO) */
+    .tick-box {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 900;
+      flex-shrink: 0;
+      transition: all 0.18s ease;
+      color: transparent;
+    }
+    .tick-box.modern {
+      border-radius: 5px;
+    }
+    .tick-box.classic {
+      border-radius: 50%;
+    }
+    .tick-box.checked {
+      background: var(--tick-blue);
+      border-color: var(--tick-blue);
+      color: #090D16;
+    }
+
+    /* MEDIDOR SUPERIOR */
+    .live-gauge-card {
+      background: var(--surface);
+      border: 1.5px solid var(--accent);
+      border-radius: 18px;
+      padding: 13px 14px;
+      margin-bottom: 13px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+    }
+    .gauge-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .water-pill {
+      background: var(--surface-elevated);
+      color: var(--blue);
+      border: 1px solid var(--border);
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .gauge-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .progress-bg { height: 9px; background: var(--surface-elevated); border-radius: 99px; overflow: hidden; margin-bottom: 9px; }
+    .progress-fill-g { height: 100%; background: var(--accent); transition: width 0.35s ease; }
+    .progress-fill-o { height: 100%; background: var(--orange); transition: width 0.35s ease; }
+
+    .live-macros-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 7px;
+      margin-top: 4px;
+    }
+    .live-macro-box {
+      background: var(--surface-elevated);
+      border-radius: 10px;
+      padding: 6px 4px;
+      text-align: center;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 15px;
+      margin-bottom: 13px;
+    }
+    .step-badge {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.9px;
+      color: var(--accent);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    .card-title { font-size: 17px; font-weight: 900; color: var(--text); margin-bottom: 5px; }
+    .card-helper { font-size: 12.5px; color: var(--muted); margin-bottom: 11px; line-height: 1.45; }
+
+    .label { font-size: 12px; font-weight: 700; color: var(--text-sec); margin: 9px 0 5px; display: block; }
+    .input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .seg-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .seg-btn {
+      flex: 1;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 10px;
+      border-radius: 11px;
+      font-weight: 800;
+      font-size: 12.5px;
+      cursor: pointer;
+    }
+    .seg-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--on-accent);
+    }
+    .opt-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      padding: 11px 12px;
+      border-radius: 13px;
+      margin-bottom: 7px;
+      cursor: pointer;
+      gap: 10px;
+    }
+    .opt-row.active {
+      border-color: var(--tick-blue);
+      background: var(--tick-blue-soft);
+    }
+    .opt-title { font-size: 13.5px; font-weight: 800; color: var(--text); }
+    .opt-sub { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.35; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 8px 0; }
+    .chip {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 11px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .chip.active {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: #EF4444;
+      color: #EF4444;
+    }
+
+    .wizard-actions { display: flex; gap: 10px; margin-top: 6px; padding-bottom: 10px; }
+    .btn-back {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 13px 16px;
+      border-radius: 13px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-primary {
+      flex: 1;
+      width: 100%;
+      background: var(--accent);
+      color: var(--on-accent);
+      border: none;
+      padding: 14px;
+      border-radius: 13px;
+      font-weight: 900;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .week-selector-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 7px 10px;
+      margin-bottom: 10px;
+    }
+    .week-btn {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .days-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+    .day-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 8px 13px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .day-pill.active {
+      background: var(--accent);
+      color: var(--on-accent);
+      border-color: var(--accent);
+    }
+
+    .meal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 13px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+    .meal-card.logged {
+      border-color: var(--accent);
+      border-width: 1.5px;
+    }
+    .meal-img-wrap {
+      width: 100%;
+      height: 155px;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 10px;
+      background: #1E293B;
+    }
+    .meal-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .ai-photo-pill {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.78);
+      color: #FFFFFF;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 4px 9px;
+      border-radius: 99px;
+    }
+    .new-recipe-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: var(--accent);
+      color: #090D16;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .meal-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .meal-badge { background: var(--surface-elevated); color: var(--blue); font-size: 11px; font-weight: 800; padding: 4px 9px; border-radius: 6px; }
+    .meal-kcal { color: var(--accent); font-weight: 900; font-size: 13px; }
+    .meal-tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+    .meal-tag { background: var(--surface-elevated); color: var(--text-sec); font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px; }
+    .supp-inline {
+      background: var(--surface-elevated);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 11.5px;
+      font-weight: 800;
+      padding: 7px 10px;
+      border-radius: 9px;
+      margin: 7px 0;
+    }
+    .recipe-box {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 11px;
+      margin: 8px 0;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text-sec);
+    }
+
+    .avatar-presets {
+      display: flex;
+      gap: 10px;
+      margin: 8px 0 12px;
+      align-items: center;
+    }
+    .avatar-thumb {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2.5px solid transparent;
+      cursor: pointer;
+    }
+    .avatar-thumb.selected { border-color: var(--accent); }
+
+    /* ESTILOS APPLE FITNESS REGISTRO */
+    .fitness-week-strip {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 10px 6px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .fitness-day-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 2px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .fitness-day-cell.active {
+      background: var(--surface-elevated);
+      outline: 1.5px solid var(--accent);
+    }
+    .fitness-month-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      margin-top: 8px;
+      margin-bottom: 4px;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--muted);
+    }
+    .fitness-month-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+    .fitness-month-cell {
+      background: var(--surface-elevated);
+      border-radius: 10px;
+      padding: 6px 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      position: relative;
+      min-height: 54px;
+      justify-content: center;
+    }
+    .fitness-month-cell.empty {
+      background: transparent;
+      cursor: default;
+      pointer-events: none;
+    }
+    .fitness-month-cell.today {
+      border-color: var(--tick-blue);
+      background: var(--tick-blue-soft);
+    }
+    .fitness-month-cell.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .bottom-nav {
+      display: flex;
+      background: var(--menu-bg);
+      border-top: 1px solid var(--border);
+      padding: 8px 0 11px;
+    }
+    .nav-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 10.5px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .nav-btn.active { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+  <div class="simulator-toolbar">
+    <div class="toolbar-group">
+      <button class="tool-btn active" id="btn-ios" onclick="setDevice('ios')">🍎 iPhone (iOS)</button>
+      <button class="tool-btn" id="btn-android" onclick="setDevice('android')">🤖 Android</button>
+    </div>
+    <div class="toolbar-group">
+      <button class="tool-btn active" id="btn-theme-light" onclick="setSystemThemeSimulation('light')">☀️ Simular Móvil Claro</button>
+      <button class="tool-btn" id="btn-theme-dark" onclick="setSystemThemeSimulation('dark')">🌙 Simular Móvil Oscuro</button>
+    </div>
+    <div class="toolbar-group">
+      <button class="tool-btn active" onclick="document.getElementById('qr-modal').style.display='flex'">📱 Abrir en mi Móvil (QR)</button>
+    </div>
+  </div>
+
+  <!-- MODAL QR PARA ESCANEAR CON EL MÓVIL -->
+  <div id="qr-modal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(9,13,22,0.85);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+    <div style="background:#0F172A;border:1px solid #334155;border-radius:24px;padding:24px;max-width:360px;width:100%;text-align:center;color:#F8FAFC;box-shadow:0 25px 60px rgba(0,0,0,0.7);">
+      <div style="font-family:'Montserrat',sans-serif;font-weight:900;font-size:20px;margin-bottom:6px;">📱 GymTrack! en tu Móvil</div>
+      <div style="font-size:12px;color:#94A3B8;margin-bottom:16px;line-height:1.45;">Escanea este código QR con la cámara de tu móvil (funciona fuera de casa con 4G/5G aunque apagues el PC):</div>
+      <div style="background:#FFFFFF;padding:14px;border-radius:18px;display:inline-block;margin-bottom:14px;">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=https://kenkugg.github.io/gymtrack/" alt="QR GymTrack!" style="width:220px;height:220px;display:block;" />
+      </div>
+      <div style="font-size:11.5px;color:#38BDF8;font-weight:800;word-break:break-all;margin-bottom:16px;">https://kenkugg.github.io/gymtrack/</div>
+      <button onclick="document.getElementById('qr-modal').style.display='none'" style="width:100%;background:#FFFFFF;color:#090D16;border:none;padding:12px;border-radius:12px;font-weight:900;font-size:13.5px;cursor:pointer;">Cerrar</button>
+    </div>
+  </div>
+
+  <div class="phone-frame" id="phone-frame">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span id="device-os-tag">iOS 18 • 5G 🔋</span>
+    </div>
+    <div id="app-mount" style="flex:1;display:flex;flex-direction:column;overflow:hidden;"></div>
+  </div>
+
+  <script>
+    function makeAvatarSvg(emoji, bgColor) {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="60" fill="${bgColor}"/><text x="50%" y="54%" font-size="58" text-anchor="middle" dominant-baseline="central">${emoji}</text></svg>`;
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    // 6 Avatares simples de Gimnasio y Comida + 6 Avatares de Animales
+    const FITNESS_FOOD_AVATARS = [
+      { id: 'dumbbell', label: 'Mancuerna', emoji: '🏋️', url: makeAvatarSvg('🏋️', '#0F172A') },
+      { id: 'muscle',   label: 'Fuerza',    emoji: '💪', url: makeAvatarSvg('💪', '#065F46') },
+      { id: 'shaker',   label: 'Proteína',  emoji: '🥤', url: makeAvatarSvg('🥤', '#1E3A8A') },
+      { id: 'avocado',  label: 'Aguacate',  emoji: '🥑', url: makeAvatarSvg('🥑', '#14532D') },
+      { id: 'salad',    label: 'Comida Fit',emoji: '🥗', url: makeAvatarSvg('🥗', '#064E3B') },
+      { id: 'meat',     label: 'Pollo/Prot',emoji: '🍗', url: makeAvatarSvg('🍗', '#7C2D12') }
+    ];
+
+    const ANIMAL_AVATARS = [
+      { id: 'lion',     label: 'León',      emoji: '🦁', url: makeAvatarSvg('🦁', '#78350F') },
+      { id: 'wolf',     label: 'Lobo',      emoji: '🐺', url: makeAvatarSvg('🐺', '#1E293B') },
+      { id: 'gorilla',  label: 'Gorila',    emoji: '🦍', url: makeAvatarSvg('🦍', '#111827') },
+      { id: 'shark',    label: 'Tiburón',   emoji: '🦈', url: makeAvatarSvg('🦈', '#0C4A6E') },
+      { id: 'eagle',    label: 'Águila',    emoji: '🦅', url: makeAvatarSvg('🦅', '#451A03') },
+      { id: 'bull',     label: 'Toro',      emoji: '🐂', url: makeAvatarSvg('🐂', '#7F1D1D') }
+    ];
+
+    const PHOTO_PRESETS = [...FITNESS_FOOD_AVATARS, ...ANIMAL_AVATARS].map(a => a.url);
+
+    const ACCENT_THEMES = {
+      monochrome: {
+        name: 'Negro y Blanco GT! (Predeterminado)',
+        hex: '#090D16',
+        darkHex: '#FFFFFF',
+        soft: 'rgba(15, 23, 42, 0.08)',
+        darkSoft: 'rgba(255, 255, 255, 0.12)',
+        onAccentLight: '#FFFFFF',
+        onAccentDark: '#090D16'
+      },
+      ocean:   { name: 'Azul Claro Minimalista', hex: '#38BDF8', soft: 'rgba(56, 189, 248, 0.14)', onAccentLight: '#090D16', onAccentDark: '#090D16' },
+      emerald: { name: 'Verde Fitness', hex: '#10B981', soft: 'rgba(16, 185, 129, 0.14)', onAccentLight: '#090D16', onAccentDark: '#090D16' },
+      sunset:  { name: 'Naranja Fuego Intenso', hex: '#F97316', soft: 'rgba(249, 115, 22, 0.14)', onAccentLight: '#FFFFFF', onAccentDark: '#090D16' },
+      violet:  { name: 'Morado Pro', hex: '#8B5CF6', soft: 'rgba(139, 92, 246, 0.14)', onAccentLight: '#FFFFFF', onAccentDark: '#FFFFFF' },
+      crimson: { name: 'Rojo Potencia', hex: '#EF4444', soft: 'rgba(239, 68, 68, 0.14)', onAccentLight: '#FFFFFF', onAccentDark: '#FFFFFF' }
+    };
+
+    const SUPPLEMENT_CATALOG = {
+      whey_protein: { name: 'Proteína Whey Isolate / Vegetal', icon: '🥤', short: 'Síntesis proteica rápida y recuperación muscular post-entreno' },
+      creatine: { name: 'Creatina Monohidrato (Creapure®)', icon: '⚡', short: 'Aumenta fuerza explosiva, ATP celular y volumen muscular' },
+      pre_workout: { name: 'Pre-Entreno (Cafeína + Citrulina)', icon: '🔥', short: 'Foco mental, vasodilatación y mayor quema calórica al entrenar' },
+      bcaa_eaa: { name: 'Aminoácidos Esenciales (EAA / BCAA)', icon: '🧬', short: 'Protege el músculo en déficit calórico o entrenamientos largos' },
+      omega_vitamins: { name: 'Omega-3 + Multivitamínico D3', icon: '💊', short: 'Salud articular, antiinflamatorio y sensibilidad a la insulina' },
+      casein_magnesium: { name: 'Magnesio Bisglicinato + Caseína Nocturna', icon: '🌙', short: 'Recuperación muscular nocturna y descanso profundo' },
+      intra_carbs: { name: 'Ciclodextrina (Carbos Intra-Entreno)', icon: '🔋', short: 'Energía inmediata sin pesadez para entrenamientos intensos' }
+    };
+
+    // Base de 7 días + banco extra de recetas nuevas por semana para rotación semanal variada
+    const EXTRA_WEEKLY_RECIPES = {
+      Desayuno: [
+        {
+          title: 'Bagel Proteico Tostado con Huevo, Aguacate y Pavo Ahumado',
+          desc: 'Nueva receta semanal: alto poder saciante y energía limpia.',
+          prompt: 'toasted protein bagel with egg sliced avocado and smoked turkey',
+          ingredients: ['1 Bagel integral proteico', '2 Huevos a la plancha', '60g Pavo ahumado', '1/2 Aguacate'],
+          steps: ['Tostar el bagel abierto por la mitad.', 'Colocar el aguacate, el pavo y los huevos recién hechos.']
+        },
+        {
+          title: 'Bowl Templado de Quinoa Con Leche de Almendras, Canela y Frutos Rojos',
+          desc: 'Nueva receta semanal: alternativa rica en aminoácidos a la avena clásica.',
+          prompt: 'warm sweet quinoa breakfast bowl with berries almonds and cinnamon',
+          ingredients: ['60g Quinoa cocida en leche vegetal', '1 cazo Proteína', '80g Frutos rojos', 'Canela'],
+          steps: ['Templar la quinoa con bebida de almendras y canela.', 'Mezclar la proteína y decorar con frutos rojos.']
+        }
+      ],
+      Almuerzo: [
+        {
+          title: 'Burrito Bowl Fitness de Ternera Magra, Arroz Integral, Pico de Gallo y Aguacate',
+          desc: 'Nueva receta semanal: explosión de sabor mexicano ajustada a tus macros.',
+          prompt: 'healthy mexican burrito bowl with lean beef brown rice avocado and pico de gallo',
+          ingredients: ['185g Ternera magra salteada', '75g Arroz integral', 'Tomate, cebolla, cilantro y lima', '60g Aguacate'],
+          steps: ['Cocer el arroz con toque de lima.', 'Saltear la ternera con especias fajita y montar el bol con pico de gallo.']
+        },
+        {
+          title: 'Solomillo de Pollo al Curry Suave de Coco con Basmati y Espinacas',
+          desc: 'Nueva receta semanal: receta antiinflamatoria de fácil digestión.',
+          prompt: 'chicken breast curry with light coconut milk spinach and basmati rice',
+          ingredients: ['195g Solomillo de pollo', '75g Arroz basmati', '100ml Leche de coco light', 'Espinacas baby y curry'],
+          steps: ['Dorar el pollo en dados con curry suave.', 'Añadir leche de coco ligera, espinacas y acompañar de basmati.']
+        }
+      ],
+      Cena: [
+        {
+          title: 'Atún / Pollo a la Plancha con Boniato Baby y Espárragos al Limón',
+          desc: 'Nueva receta semanal: recuperación muscular óptima para la noche.',
+          prompt: 'seared tuna steak with roasted baby sweet potatoes and green asparagus',
+          ingredients: ['190g Lomo de atún o pechuga de pollo', '120g Boniato asado', 'Espárragos verdes y limón'],
+          steps: ['Sellar la proteína vuelta y vuelta a la plancha.', 'Servir junto a los espárragos y dados de boniato.']
+        },
+        {
+          title: 'Wok Nocturno de Gambones, Calabacín, Setas Shiitake y Huevo',
+          desc: 'Nueva receta semanal: altísima proteína con muy pocas calorías.',
+          prompt: 'healthy shrimp and shiitake mushroom zucchini stir fry wok',
+          ingredients: ['180g Gambones pelados (o pollo)', '1 Calabacín en medias lunas', '100g Setas shiitake', '1 Huevo'],
+          steps: ['Saltear al wok las setas y el calabacín 5 min.', 'Añadir los gambones y el huevo hasta cuajar.']
+        }
+      ]
+    };
+
+    const SEVEN_DAYS_MENUS = [
+      {
+        day: 'Lunes',
+        workout: {
+          focus: 'Tren Superior Empuje + Oxidación',
+          title: 'Lunes: Empuje (Pecho, Hombro, Tríceps) + Cardio Inclinado',
+          exercises: ['Press Banca o Mancuernas: 4 series x 8-10 reps', 'Press Militar de Hombros: 3 series x 10 reps', 'Fondos / Extensión Tríceps Polea: 3 series x 12 reps', '15 min Cinta Inclinada (12% pendiente)']
+        },
+        meals: {
+          Desayuno: {
+            title: 'Tostadas Proteicas de Huevos Revueltos, Pavo Braseado y Aguacate',
+            desc: 'Arranque de lunes con proteína biodisponible y grasas saludables.',
+            prompt: 'scrambled eggs with sliced avocado and turkey breast on artisan sourdough toast',
+            ingredients: ['2 Rebanadas pan integral masa madre', '2 Huevos camperos + 2 claras', '60g Pavo natural 95%', '1/2 Aguacate Hass'],
+            steps: ['Tostar el pan y extender el aguacate machacado con limón.', 'Cuajar los huevos a fuego lento y servir con el pavo braseado.']
+          },
+          'Media Mañana': {
+            title: 'Tortitas de Arroz Integral con Aguacate, Pavo y Sésamo',
+            desc: 'Tentempié ligero que mantiene estable la glucosa.',
+            prompt: 'crispy rice cakes topped with avocado slices turkey and sesame seeds',
+            ingredients: ['3 Tortitas de arroz', '70g Pechuga de pavo', '1/3 Aguacate'],
+            steps: ['Montar las tortitas con aguacate y lonchas de pavo.']
+          },
+          Almuerzo: {
+            title: 'Pechuga de Pollo al Limón con Quinoa Real y Espárragos Trigueros',
+            desc: 'Alto en proteína magra y aminoácidos completos con bajo índice glucémico.',
+            prompt: 'grilled lemon herb chicken breast with quinoa and green asparagus spears',
+            ingredients: ['200g Pechuga de pollo de corral', '75g Quinoa real', 'Manojo de espárragos verdes', 'Limón y 1 cda AOVE'],
+            steps: ['Cocer la quinoa 12 min en agua hirviendo.', 'Asar la pechuga a la plancha con limón y saltear los espárragos.']
+          },
+          'Merienda Post-Gym': {
+            title: 'Batido Recovery de Proteína Isolate con Plátano y Canela',
+            desc: 'Recarga rápida de glucógeno y síntesis muscular tras el entreno.',
+            prompt: 'chocolate whey protein shake glass with sliced banana and oats',
+            ingredients: ['1 cazo (30g) Proteína Isolate o 200g Skyr', '1 Plátano maduro', 'Canela Ceilán'],
+            steps: ['Mezclar la proteína con agua o leche fría en el shaker y acompañar del plátano.']
+          },
+          Cena: {
+            title: 'Lomos de Merluza al Horno con Espárragos y Patata Baby al Vapor',
+            desc: 'Cena digestiva y ligera para potenciar el descanso nocturno.',
+            prompt: 'baked white hake fish fillet with steamed baby potatoes and green asparagus',
+            ingredients: ['210g Lomos de merluza fresca', '100g Patata baby cocida', 'Espárragos trigueros, ajo y perejil'],
+            steps: ['Hornear la merluza 10 min a 190°C con limón y perejil.', 'Servir con las patatas y espárragos al vapor.']
+          }
+        }
+      },
+      {
+        day: 'Martes',
+        workout: {
+          focus: 'Dorsales, Densidad de Espalda y Bíceps',
+          title: 'Martes: Tracción (Espalda, Deltoides Posterior y Bíceps)',
+          exercises: ['Dominadas o Jalón al Pecho: 4 series x 10 reps', 'Remo con Barra o Polea Baja: 4 series x 10 reps', 'Face Pull en Polea: 3 series x 15 reps', 'Curl Bíceps Alterno con Mancuernas: 3 series x 12 reps']
+        },
+        meals: {
+          Desayuno: {
+            title: 'Tortitas Americanas de Avena, Claras y Arándanos con Skyr',
+            desc: 'Hidratos complejos de absorción gradual y antioxidantes.',
+            prompt: 'fluffy protein oat pancakes topped with skyr yogurt and fresh blueberries',
+            ingredients: ['60g Harina de avena', '150ml Claras + 1 huevo', '80g Yogur Skyr', 'Puñado de arándanos'],
+            steps: ['Batir la avena con los huevos y canela.', 'Dorar en sartén 2 min por lado y coronar con Skyr y arándanos.']
+          },
+          'Media Mañana': {
+            title: 'Copa de Skyr Proteico con Kiwi Gold y Semillas de Chía',
+            desc: 'Alto en vitamina C y calcio.',
+            prompt: 'greek yogurt parfait glass with golden kiwi slices and chia seeds',
+            ingredients: ['180g Skyr natural 0%', '1 Kiwi Gold en dados', '1 cdita Chía'],
+            steps: ['Alternar capas de Skyr con el kiwi troceado y las semillas.']
+          },
+          Almuerzo: {
+            title: 'Tataki de Ternera Magra con Arroz Basmati y Brócoli al Wok',
+            desc: 'Rico en hierro hemo, zinc y creatina natural para ganar fuerza.',
+            prompt: 'seared lean beef steak slices with basmati rice and wok broccoli',
+            ingredients: ['185g Solomillo o cadera de ternera magra', '80g Arroz basmati', '160g Brócoli fresco', 'Sésamo tostado'],
+            steps: ['Sellar la ternera a fuego fuerte 3 min por lado y filetear.', 'Saltear el brócoli al wok y acompañar con arroz basmati.']
+          },
+          'Merienda Post-Gym': {
+            title: 'Tostada Integral con Crema 100% Cacahuete, Frambuesas y Batido',
+            desc: 'Energía muscular y grasas saludables.',
+            prompt: 'whole grain toast with peanut butter and fresh raspberries',
+            ingredients: ['1 Rebanada pan integral', '15g Crema de cacahuete 100%', 'Frambuesas frescas', '30g Proteína Isolate'],
+            steps: ['Tostar el pan, untar la crema de cacahuete y colocar las frambuesas.']
+          },
+          Cena: {
+            title: 'Ensalada Templada de Pollo Grill, Aguacate, Canónigos y Cherrys',
+            desc: 'Cena baja en carbohidratos y alta en saciedad.',
+            prompt: 'warm grilled chicken breast salad with avocado cherry tomatoes and greens',
+            ingredients: ['185g Tiras de pollo a la parrilla', 'Base de canónigos y rúcula', '1/2 Aguacate en dados', 'Mostaza antigua y AOVE'],
+            steps: ['Saltear las tiras de pollo con orégano y colocar sobre la ensalada fresca.']
+          }
+        }
+      },
+      {
+        day: 'Miércoles',
+        workout: {
+          focus: 'Cuádriceps, Isquiosurales y Glúteo',
+          title: 'Miércoles: Pierna Completa de Alto Gasto Metabólico',
+          exercises: ['Sentadilla Libre / Hack Squat: 4 series x 8-10 reps', 'Peso Muerto Rumano: 4 series x 10 reps', 'Prensa 45°: 3 series x 12 reps', 'Elevación de Gemelos + Core: 4 series x 15 reps']
+        },
+        meals: {
+          Desayuno: {
+            title: 'Omelette Mediterráneo de Espinacas, Tomate Seco y Queso Ligero',
+            desc: 'Tortilla jugosa cargada de proteínas y hierro.',
+            prompt: 'spinach and feta cheese omelette with sun dried tomatoes and herbs',
+            ingredients: ['2 Huevos + 100ml claras', 'Puñado de espinacas baby', 'Tomates secos', '1 Tostada integral'],
+            steps: ['Saltear las espinacas 1 min, verter los huevos batidos y doblar la tortilla.']
+          },
+          'Media Mañana': {
+            title: 'Rollitos de Pollo Asado Rellenos de Queso Cottage y Pepino',
+            desc: 'Snack proteico puro y refrescante.',
+            prompt: 'chicken breast rolls stuffed with cottage cheese and cucumber strips',
+            ingredients: ['90g Lonchas de pollo asado', '60g Queso cottage alto en proteína', 'Bastones de pepino'],
+            steps: ['Untar el queso cottage en cada loncha, enrollar con el pepino.']
+          },
+          Almuerzo: {
+            title: 'Lomo de Salmón Noruego al Horno con Boniato Asado y Brotes',
+            desc: 'Ácidos grasos Omega-3 EPA/DHA y carbohidratos complejos.',
+            prompt: 'baked salmon fillet with roasted sweet potato wedges and fresh greens',
+            ingredients: ['180g Lomo de salmón fresco', '180g Boniato en bastones', 'Brotes tiernos, eneldo y AOVE'],
+            steps: ['Asar el boniato 15 min a 200°C.', 'Hornear el salmón 8 min para que quede jugoso.']
+          },
+          'Merienda Post-Gym': {
+            title: 'Mousse Proteico de Cacao Puro y Avellanas Tostadas',
+            desc: 'Post-entreno antioxidante y alto en proteína.',
+            prompt: 'dark chocolate protein mousse bowl topped with hazelnuts and berries',
+            ingredients: ['200g Queso fresco batido 0% + 1/2 cazo Whey', '1 cda Cacao 100% puro', '10g Avellanas picadas'],
+            steps: ['Batir el lácteo con la proteína y el cacao hasta lograr textura de mousse.']
+          },
+          Cena: {
+            title: 'Revuelto Proteico de Champiñones Portobello, Gambas y Ajetes',
+            desc: 'Cena rápida de altísima densidad proteica.',
+            prompt: 'scrambled eggs with portobello mushrooms shrimp and green garlic shoots',
+            ingredients: ['2 Huevos + 150ml claras', '150g Champiñones Portobello', '100g Gambas peladas o pavo', 'Ajetes tiernos'],
+            steps: ['Saltear los champiñones, ajetes y gambas.', 'Añadir los huevos y cuajar suave.']
+          }
+        }
+      },
+      {
+        day: 'Jueves',
+        workout: {
+          focus: 'Quema Cardiovascular HIIT y Core',
+          title: 'Jueves: Cardio Metabólico HIIT + Abdomen & Movilidad',
+          exercises: ['20 min Circuito HIIT Metabólico (Remo, Burpees, Cuerda)', 'Plancha Isométrica + Rueda Abdominal: 4 series', '15 min Cardio Zona 2 continuo']
+        },
+        meals: {
+          Desayuno: {
+            title: 'Bowl Fitness de Yogur Griego, Granola Sin Azúcar y Fresas',
+            desc: 'Desayuno rápido rico en probióticos y energía.',
+            prompt: 'greek yogurt bowl with fresh sliced strawberries granola and almonds',
+            ingredients: ['250g Yogur griego 0%', '45g Avena o granola sin azúcar', '100g Fresas frescas', '15g Almendras'],
+            steps: ['Colocar el yogur en bol y disponer en hileras las fresas y la granola.']
+          },
+          'Media Mañana': {
+            title: 'Manzana Verde con Crema de Cacahuete y Batido Ligero',
+            desc: 'Pectina saciante y aminoácidos.',
+            prompt: 'green apple slices with natural peanut butter dip and cinnamon',
+            ingredients: ['1 Manzana Granny Smith', '15g Crema cacahuete', '1 Yogur proteico'],
+            steps: ['Cortar la manzana en gajos y servir con la crema de cacahuete.']
+          },
+          Almuerzo: {
+            title: 'Pasta Integral con Pollo Desmechado al Pesto Ligero de Albahaca',
+            desc: 'Recarga limpia de energía muscular a mitad de semana.',
+            prompt: 'whole wheat pasta with grilled chicken strips basil pesto and cherry tomatoes',
+            ingredients: ['80g Pasta integral', '185g Pollo a la plancha en tiras', 'Albahaca fresca, ajo y AOVE', 'Tomates cherry'],
+            steps: ['Cocer la pasta al dente y saltear con el pollo, cherrys y albahaca fresca.']
+          },
+          'Merienda Post-Gym': {
+            title: 'Sándwich Integral de Pavo Braseado, Rúcula y Queso Proteico',
+            desc: 'Merienda salada reconfortante.',
+            prompt: 'healthy whole grain sandwich with turkey breast and fresh arugula',
+            ingredients: ['2 Rebanadas pan integral', '90g Pechuga de pavo', 'Rúcula y tomate'],
+            steps: ['Tostar el sándwich ligeramente en plancha caliente.']
+          },
+          Cena: {
+            title: 'Tataki de Salmón en Costra de Sésamo con Wok de Verduras Verdes',
+            desc: 'Cena antiinflamatoria rica en Omega-3.',
+            prompt: 'sesame crusted seared salmon with sauteed green vegetables',
+            ingredients: ['180g Lomo de salmón con sésamo', 'Brócoli, judías verdes y calabacín', 'Toque de jengibre y limón'],
+            steps: ['Marcar el salmón a la plancha y saltear las verduras verdes al dente.']
+          }
+        }
+      },
+      {
+        day: 'Viernes',
+        workout: {
+          focus: 'Torso Hipertrofia y Hombros 3D',
+          title: 'Viernes: Torso Completo Hipertrofia (Pecho, Espalda y Hombro)',
+          exercises: ['Press Inclinado Mancuernas: 4 series x 10 reps', 'Remo Unilateral Mancuerna: 4 series x 10 reps', 'Elevaciones Laterales Polea: 4 series x 15 reps', 'Superserie Bíceps + Tríceps: 3 series x 12 reps']
+        },
+        meals: {
+          Desayuno: {
+            title: 'Huevos Poché sobre Salmón Ahumado Salvaje y Pan de Centeno',
+            desc: 'Desayuno gourmet alto en proteína y grasas saludables.',
+            prompt: 'poached eggs over smoked salmon and avocado on rye toast',
+            ingredients: ['2 Huevos camperos', '75g Salmón ahumado', '2 Tostadas de centeno', 'Eneldo fresco'],
+            steps: ['Escalfar los huevos 3 min en agua suave y colocar sobre el salmón.']
+          },
+          'Media Mañana': {
+            title: 'Edamames al Vapor con Sal Maldon y Pimentón de la Vera',
+            desc: 'Proteína vegetal y micronutrientes.',
+            prompt: 'steamed green edamame pods in bowl with sea salt and paprika',
+            ingredients: ['150g Vainas de edamame', 'Sal en escamas y pimentón dulce'],
+            steps: ['Cocer al vapor 4 minutos y aliñar con limón y pimentón.']
+          },
+          Almuerzo: {
+            title: 'Fajitas Fitness de Pollo y Pimientos Tricolor con Guacamole Casero',
+            desc: 'Viernes mexicano saludable cuadrado a tus calorías.',
+            prompt: 'sizzling chicken fajitas with colorful bell peppers and fresh guacamole',
+            ingredients: ['190g Tiras de pollo', 'Pimientos rojo, verde y amarillo', '2 Tortillas integrales', '60g Guacamole casero'],
+            steps: ['Saltear el pollo con los pimientos y servir en tortillas con guacamole.']
+          },
+          'Merienda Post-Gym': {
+            title: 'Smoothie Frappé de Frutos del Bosque y Proteína Isolate',
+            desc: 'Bebida post-entreno refrescante y antioxidante.',
+            prompt: 'berry protein smoothie in tall glass with blackberries and raspberries',
+            ingredients: ['100g Frutos rojos congelados', '1 cazo (30g) Proteína Isolate', '200ml Agua o leche de almendras'],
+            steps: ['Batir 30 segundos hasta textura cremosa.']
+          },
+          Cena: {
+            title: 'Hamburguesa Fitness Casera de Ternera Magra al Plato con Huevo',
+            desc: 'Cena de viernes sabrosa y 100% real food.',
+            prompt: 'gourmet lean beef burger patty plated with grilled egg avocado and salad',
+            ingredients: ['170g Hamburguesa 100% vacuno magro', '1 Huevo a la plancha', 'Ensalada de tomate raf y brotes'],
+            steps: ['Hacer la hamburguesa a la parrilla, coronar con el huevo y acompañar de ensalada.']
+          }
+        }
+      },
+      {
+        day: 'Sábado',
+        workout: {
+          focus: 'Cadena Posterior, Glúteos y Femoral',
+          title: 'Sábado: Glúteos, Isquios y Escaladora Metabólica',
+          exercises: ['Hip Thrust con Barra: 4 series x 10-12 reps', 'Zancadas Búlgaras con Mancuernas: 3 series x 10 reps', 'Curl Femoral Tumbado: 3 series x 12 reps', '15 min Escaladora StairMaster']
+        },
+        meals: {
+          Desayuno: {
+            title: 'Porridge Cremoso de Avena Proteica con Manzana Asada y Canela',
+            desc: 'Energía cálida y saciante para el fin de semana.',
+            prompt: 'warm oatmeal bowl with roasted cinnamon apple slices and walnuts',
+            ingredients: ['60g Copos de avena', '200ml Leche o bebida vegetal', '1 cazo Proteína', '1 Manzana troceada con canela'],
+            steps: ['Cocer la avena con la manzana 6 min y mezclar la proteína fuera del fuego.']
+          },
+          'Media Mañana': {
+            title: 'Mini Wrap Integral de Atún al Natural, Canónigos y Tomate',
+            desc: 'Proteína limpia lista en 5 minutos.',
+            prompt: 'healthy whole wheat mini wrap with tuna lettuce and tomato',
+            ingredients: ['1 Tortilla integral', '1 Lata de atún al natural', 'Canónigos y tomate'],
+            steps: ['Rellenar y enrollar firme.']
+          },
+          Almuerzo: {
+            title: 'Poke Bowl Hawaiano de Salmón/Pollo con Edamames, Aguacate y Mango',
+            desc: 'Sábado fresco, colorido y nutritivo.',
+            prompt: 'hawaiian poke bowl with sushi rice diced mango edamame avocado and salmon',
+            ingredients: ['75g Arroz de sushi cocido', '175g Dados de salmón o pollo', 'Edamames, pepino, aguacate y mango'],
+            steps: ['Montar la base de arroz templado y colocar los toppings frescos encima.']
+          },
+          'Merienda Post-Gym': {
+            title: 'Tortitas de Arroz con Jamón Ibérico Magro y Tomate Natural',
+            desc: 'Toque salado mediterráneo rico en hierro y proteína.',
+            prompt: 'crispy rice cakes with cured lean ham and grated tomato olive oil',
+            ingredients: ['3 Tortitas de arroz', '70g Jamón ibérico magro', 'Tomate natural rallado'],
+            steps: ['Extender el tomate sobre las tortitas y colocar el jamón.']
+          },
+          Cena: {
+            title: 'Lubina / Dorada a la Espalda con Verduritas Asadas al Horno',
+            desc: 'Cena marinera de sábado noche muy baja en grasa.',
+            prompt: 'roasted sea bream fish fillet with oven baked mediterranean vegetables',
+            ingredients: ['210g Filetes de lubina o dorada', 'Calabacín, pimiento y cebolla asada', 'Limón y ajo laminado'],
+            steps: ['Hornear el pescado 12 min a 200°C sobre cama de verduras.']
+          }
+        }
+      },
+      {
+        day: 'Domingo',
+        workout: {
+          focus: 'Recuperación Activa y Movilidad',
+          title: 'Domingo: Caminata NEAT (10.000 pasos) y Movilidad Articular',
+          exercises: ['Caminata activa al aire libre: 45 min', 'Liberación miofascial con Foam Roller y cadera: 15 min']
+        },
+        meals: {
+          Desayuno: {
+            title: 'Shakshuka Fitness de Huevos al Horno con Salsa de Tomate Natural',
+            desc: 'Brunch saludable de domingo alto en proteína y licopeno.',
+            prompt: 'shakshuka baked eggs in skillet with rich tomato pepper sauce and parsley',
+            ingredients: ['3 Huevos camperos', '200g Tomate natural con pimiento rojo', '1 Rebanada pan masa madre'],
+            steps: ['Sofreír la salsa de tomate 8 min, cascar los huevos encima y tapar 4 min.']
+          },
+          'Media Mañana': {
+            title: 'Brochetas Caprese Fitness con Mozzarella Light y Albahaca',
+            desc: 'Aperitivo dominical ligero.',
+            prompt: 'caprese skewers with cherry tomatoes mozzarella balls and fresh basil leaves',
+            ingredients: ['100g Perlas mozzarella light', '10 Tomates cherry', 'Albahaca fresca'],
+            steps: ['Ensartar alternando tomate, mozzarella y albahaca.']
+          },
+          Almuerzo: {
+            title: 'Paella / Arroz Mediterráneo de Pollo Campero, Setas y Alcachofas',
+            desc: 'El clásico arroz de domingo adaptado exactamente a tus macros.',
+            prompt: 'spanish mediterranean paella rice with chicken mushrooms and artichokes',
+            ingredients: ['80g Arroz bomba', '190g Pollo campero magro', 'Setas y corazones de alcachofa', 'Caldo casero y azafrán'],
+            steps: ['Dorar el pollo y las verduras, nacarar el arroz y cocer 17 min con caldo de azafrán.']
+          },
+          'Merienda Post-Gym': {
+            title: 'Gofre Fitness Proteico con Yogur Griego y Arándanos Frescos',
+            desc: 'Capricho saludable de domingo tarde sin azúcares añadidos.',
+            prompt: 'golden protein waffle topped with greek yogurt and blueberries',
+            ingredients: ['35g Harina de avena', '1 Huevo + 60ml claras', 'Yogur griego y arándanos'],
+            steps: ['Hacer el gofre en gofrera o sartén y coronar con yogur y fruta.']
+          },
+          Cena: {
+            title: 'Tortilla Francesa Rellena de Pavo Natural y Crema de Calabaza',
+            desc: 'Cena suave y digestiva para empezar la nueva semana al 100%.',
+            prompt: 'french omelette stuffed with turkey accompanied by warm pumpkin soup bowl',
+            ingredients: ['2 Huevos + 100ml claras', '70g Pavo natural', '200ml Crema casera de calabaza'],
+            steps: ['Servir la crema de calabaza caliente junto a la tortilla recién hecha.']
+          }
+        }
+      }
+    ];
+
+    // =========================================================================
+    // CALENDARIO REAL DEL DISPOSITIVO (Sincronizado con el reloj del móvil/PC)
+    // =========================================================================
+    const MONTH_NAMES_ES = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    const WEEKDAY_SHORT_ES = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+    const WEEKDAY_FULL_ES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+    function getDeviceToday() {
+      const now = new Date();
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    }
+
+    function formatDateKey(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(dateObj.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function parseDateKey(dateKey) {
+      const parts = (dateKey || '').split('-').map(Number);
+      if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) return getDeviceToday();
+      return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+
+    function getMondayOfWeek(dateObj) {
+      const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+      const weekdayIdx = (d.getDay() + 6) % 7; // 0=Lunes .. 6=Domingo
+      d.setDate(d.getDate() - weekdayIdx);
+      return d;
+    }
+
+    function getDateMetadata(dateKey) {
+      const d = parseDateKey(dateKey);
+      const today = getDeviceToday();
+      const todayKey = formatDateKey(today);
+      const wIdx = (d.getDay() + 6) % 7;
+      return {
+        dateObj: d,
+        dateKey: formatDateKey(d),
+        dayOfMonth: d.getDate(),
+        monthIndex: d.getMonth(),
+        monthName: MONTH_NAMES_ES[d.getMonth()],
+        year: d.getFullYear(),
+        weekdayIndex: wIdx,
+        weekdayShort: WEEKDAY_SHORT_ES[wIdx],
+        weekdayFull: WEEKDAY_FULL_ES[wIdx],
+        isToday: formatDateKey(d) === todayKey,
+        isPast: d < today,
+        isFuture: d > today
+      };
+    }
+
+    function getWeekDaysForDate(refDateObj) {
+      const monday = getMondayOfWeek(refDateObj);
+      return Array.from({ length: 7 }, (_, i) => {
+        const cur = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+        return getDateMetadata(formatDateKey(cur));
+      });
+    }
+
+    function getDeviceCalendarMonthGrid(year, monthIndex) {
+      const firstDay = new Date(year, monthIndex, 1);
+      const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+      const leadingEmptySlots = (firstDay.getDay() + 6) % 7; // Alineación real L..D
+      const days = [];
+      for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
+        const cur = new Date(year, monthIndex, dayNum);
+        days.push(getDateMetadata(formatDateKey(cur)));
+      }
+      return {
+        year,
+        monthIndex,
+        monthName: MONTH_NAMES_ES[monthIndex],
+        daysInMonth,
+        leadingEmptySlots,
+        days
+      };
+    }
+
+    // Almacén de registros por fecha real del dispositivo ('YYYY-MM-DD')
+    let CALENDAR_LOGS_BY_DATE = {};
+
+    function getDayRecordByDateKey(dateKey) {
+      if (!CALENDAR_LOGS_BY_DATE[dateKey]) {
+        CALENDAR_LOGS_BY_DATE[dateKey] = {
+          foods: [],
+          exercises: [],
+          waterGlasses: 0
+        };
+      }
+      return CALENDAR_LOGS_BY_DATE[dateKey];
+    }
+
+    const USERS_DB_KEY = 'gymtrack_users_db_v1';
+    const ACTIVE_USER_KEY = 'gymtrack_active_user_v1';
+
+    const _initialToday = getDeviceToday();
+
+    const state = {
+      stage: 'intro', // 'intro' -> 'auth' -> 'onboarding' -> 'main'
+      authMode: 'login', // 'login' | 'register'
+      authUsernameInput: '',
+      authPasswordInput: '',
+      authErrorMsg: '',
+      currentUser: null, // username con sesión iniciada
+      onboardingCompleted: false,
+      onboardingStep: 1,
+      tab: 'diet', // 'diet' | 'routines' | 'fitness_log' | 'settings'
+      settingsSubTab: 'profile', // 'profile' | 'customize'
+      systemColorScheme: (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light',
+      themePreference: 'system', // 'system' | 'light' | 'dark'
+      accentKey: 'monochrome',
+      uiTickStyle: 'modern', // 'modern' (cuadrados) | 'classic' (círculos)
+      showUserRecipePhotos: true,
+      userRecipePhotos: {}, // { [rKey]: [dataUrl1, dataUrl2, ...] } fotos subidas por el usuario para cada receta
+      profilePhotoUrl: FITNESS_FOOD_AVATARS[0].url,
+      currentWeekNumber: 1, // Semana 1..4 (mezcla recetas nuevas con clásicas)
+      fitnessViewMode: 'week', // 'week' | 'month'
+      calendarYear: _initialToday.getFullYear(),
+      calendarMonth: _initialToday.getMonth(),
+      selectedDateKey: formatDateKey(_initialToday), // Fecha real actual del dispositivo (YYYY-MM-DD)
+      selectedDay: (_initialToday.getDay() + 6) % 7, // 0=Lunes .. 6=Domingo según el día real de hoy
+      profile: {
+        name: 'Alex',
+        gender: 'male',
+        age: 28,
+        weightKg: 78,
+        heightCm: 176,
+        targetWeightKg: 72,
+        activityLevel: 'moderate',
+        goal: 'lose'
+      },
+      preferences: {
+        dietType: 'mediterranean',
+        allergies: [],
+        favoriteFoods: 'Pollo, aguacate, arroz basmati, frutos rojos',
+        dislikedFoods: 'Coliflor, hígado',
+        mealsPerDay: 4,
+        allowAiSupplementRecommendations: true,
+        selectedSupplements: ['whey_protein', 'creatine']
+      },
+      expandedRecipeKey: null,
+      loggedMealsMap: {},
+      dietSubView: 'meals', // 'meals' | 'shopping'
+      checkedShoppingItems: {}, // { [itemKey]: true }
+      customShoppingItems: [] // [{ id, name, category }]
+    };
+
+    function getUsersDb() {
+      try {
+        const raw = localStorage.getItem(USERS_DB_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function saveUsersDb(db) {
+      try {
+        localStorage.setItem(USERS_DB_KEY, JSON.stringify(db));
+      } catch (e) {}
+    }
+
+    function saveCurrentUserState() {
+      if (!state.currentUser) return;
+      const db = getUsersDb();
+      const key = state.currentUser.toLowerCase();
+      const existing = db[key] || {};
+      db[key] = {
+        username: existing.username || state.currentUser,
+        password: existing.password || '',
+        onboardingCompleted: state.onboardingCompleted,
+        themePreference: state.themePreference,
+        accentKey: state.accentKey,
+        uiTickStyle: state.uiTickStyle,
+        showUserRecipePhotos: state.showUserRecipePhotos,
+        userRecipePhotos: state.userRecipePhotos,
+        profilePhotoUrl: state.profilePhotoUrl,
+        currentWeekNumber: state.currentWeekNumber,
+        profile: JSON.parse(JSON.stringify(state.profile)),
+        preferences: JSON.parse(JSON.stringify(state.preferences)),
+        loggedMealsMap: JSON.parse(JSON.stringify(state.loggedMealsMap)),
+        checkedShoppingItems: JSON.parse(JSON.stringify(state.checkedShoppingItems || {})),
+        customShoppingItems: JSON.parse(JSON.stringify(state.customShoppingItems || [])),
+        calendarLogsByDate: JSON.parse(JSON.stringify(CALENDAR_LOGS_BY_DATE))
+      };
+      saveUsersDb(db);
+      try {
+        localStorage.setItem(ACTIVE_USER_KEY, key);
+      } catch (e) {}
+    }
+
+    function applyUserAccountToState(account) {
+      state.currentUser = account.username;
+      state.onboardingCompleted = !!account.onboardingCompleted;
+      state.themePreference = account.themePreference || 'system';
+      state.accentKey = (!account.accentKey || account.accentKey === 'emerald') ? 'monochrome' : account.accentKey;
+      state.uiTickStyle = account.uiTickStyle || 'modern';
+      state.showUserRecipePhotos = account.showUserRecipePhotos !== undefined ? account.showUserRecipePhotos : true;
+      state.userRecipePhotos = account.userRecipePhotos || {};
+      state.profilePhotoUrl = account.profilePhotoUrl || FITNESS_FOOD_AVATARS[0].url;
+      state.currentWeekNumber = account.currentWeekNumber || 1;
+      if (account.profile) state.profile = account.profile;
+      if (account.preferences) state.preferences = account.preferences;
+      state.loggedMealsMap = account.loggedMealsMap || {};
+      state.checkedShoppingItems = account.checkedShoppingItems || {};
+      state.customShoppingItems = account.customShoppingItems || [];
+
+      CALENDAR_LOGS_BY_DATE = account.calendarLogsByDate
+        ? JSON.parse(JSON.stringify(account.calendarLogsByDate))
+        : {};
+
+      const today = getDeviceToday();
+      state.calendarYear = today.getFullYear();
+      state.calendarMonth = today.getMonth();
+      state.selectedDateKey = formatDateKey(today);
+      state.selectedDay = (today.getDay() + 6) % 7;
+    }
+
+    function initSavedSessionOnBoot() {
+      try {
+        const activeKey = localStorage.getItem(ACTIVE_USER_KEY);
+        const db = getUsersDb();
+        if (activeKey && db[activeKey]) {
+          applyUserAccountToState(db[activeKey]);
+        } else if (Object.keys(db).length > 0) {
+          const firstAcc = Object.values(db)[0];
+          if (firstAcc && firstAcc.onboardingCompleted) {
+            applyUserAccountToState(firstAcc);
+          }
+          state.authMode = 'login';
+        } else {
+          state.authMode = 'register';
+        }
+        state.stage = 'intro';
+      } catch (e) {}
+    }
+
+    function handleAuthSubmit() {
+      const u = (state.authUsernameInput || '').trim();
+      const p = (state.authPasswordInput || '').trim();
+      if (!u || !p) {
+        state.authErrorMsg = 'Por favor, introduce tu usuario y contraseña.';
+        render();
+        return;
+      }
+      const db = getUsersDb();
+      const key = u.toLowerCase();
+
+      if (state.authMode === 'login') {
+        if (!db[key]) {
+          state.authErrorMsg = 'Ese usuario no existe aún. Pulsa en "Crear Cuenta" para registrarte por primera vez.';
+          render();
+          return;
+        }
+        if (db[key].password !== p) {
+          state.authErrorMsg = 'Contraseña incorrecta. Inténtalo de nuevo.';
+          render();
+          return;
+        }
+        state.authErrorMsg = '';
+        applyUserAccountToState(db[key]);
+        localStorage.setItem(ACTIVE_USER_KEY, key);
+        state.stage = state.onboardingCompleted ? 'main' : 'onboarding';
+        state.tab = 'diet';
+        render();
+      } else {
+        if (db[key]) {
+          state.authErrorMsg = 'Ese nombre de usuario ya está registrado. Elige otro o inicia sesión.';
+          render();
+          return;
+        }
+        CALENDAR_LOGS_BY_DATE = {};
+        const today = getDeviceToday();
+        state.calendarYear = today.getFullYear();
+        state.calendarMonth = today.getMonth();
+        state.selectedDateKey = formatDateKey(today);
+        state.selectedDay = (today.getDay() + 6) % 7;
+
+        state.currentUser = u;
+        state.onboardingCompleted = false;
+        state.profile = {
+          name: u,
+          gender: 'male',
+          age: 28,
+          weightKg: 78,
+          heightCm: 176,
+          targetWeightKg: 72,
+          activityLevel: 'moderate',
+          goal: 'lose'
+        };
+        state.preferences = {
+          dietType: 'mediterranean',
+          allergies: [],
+          favoriteFoods: 'Pollo, aguacate, arroz basmati, frutos rojos',
+          dislikedFoods: 'Coliflor, hígado',
+          mealsPerDay: 4,
+          allowAiSupplementRecommendations: true,
+          selectedSupplements: ['whey_protein', 'creatine']
+        };
+        state.profilePhotoUrl = FITNESS_FOOD_AVATARS[0].url;
+        state.userRecipePhotos = {};
+        state.loggedMealsMap = {};
+
+        db[key] = {
+          username: u,
+          password: p,
+          onboardingCompleted: false
+        };
+        saveUsersDb(db);
+        saveCurrentUserState();
+        state.authErrorMsg = '';
+        state.onboardingStep = 1;
+        state.stage = 'onboarding';
+        render();
+      }
+    }
+
+    function handleLogoutUser() {
+      saveCurrentUserState();
+      try {
+        localStorage.removeItem(ACTIVE_USER_KEY);
+      } catch (e) {}
+      state.currentUser = null;
+      state.authPasswordInput = '';
+      state.authErrorMsg = '';
+      state.authMode = 'login';
+      state.stage = 'auth';
+      render();
+    }
+
+    // Obtiene la fecha ('YYYY-MM-DD') correspondiente al día de la semana (0=Lunes..6=Domingo) de la semana activa
+    function getDateKeyForActiveWeekday(dayIdx) {
+      const weekDays = getWeekDaysForDate(parseDateKey(state.selectedDateKey));
+      return weekDays[dayIdx] ? weekDays[dayIdx].dateKey : state.selectedDateKey;
+    }
+
+    function getDayRecordByWeekday(dayIdx) {
+      return getDayRecordByDateKey(getDateKeyForActiveWeekday(dayIdx));
+    }
+
+    // Calcula en tiempo real los porcentajes y calorías de cualquier fecha del calendario del dispositivo ('YYYY-MM-DD')
+    function computeDayRealtimeStats(dateKey, m) {
+      const rec = getDayRecordByDateKey(dateKey);
+      const consumed = rec.foods.reduce((a, b) => a + b.cals, 0);
+      const prot = rec.foods.reduce((a, b) => a + b.p, 0);
+      const carbs = rec.foods.reduce((a, b) => a + b.c, 0);
+      const fat = rec.foods.reduce((a, b) => a + b.f, 0);
+      const burned = rec.exercises.reduce((a, b) => a + b.cals, 0);
+      const waterL = rec.waterGlasses * 0.25;
+      const targetWater = parseFloat(m.waterLiters) || 2.5;
+
+      const dietPct = Math.min(100, Math.round((consumed / m.consume) * 100));
+      const movePct = Math.min(100, Math.round((burned / m.burn) * 100));
+      const hydroPct = Math.min(100, Math.round((waterL / targetWater) * 100));
+
+      return {
+        consumed, prot, carbs, fat, burned, waterL: waterL.toFixed(2),
+        dietPct, movePct, hydroPct,
+        foods: rec.foods,
+        exercises: rec.exercises,
+        waterGlasses: rec.waterGlasses,
+        isLive: true
+      };
+    }
+
+    const multipliers = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, very_active: 1.9 };
+    const goalDeltas = { lose_fast: -600, lose: -400, maintain: 0, gain_muscle: 350 };
+    const baseBurn = { sedentary: 250, light: 350, moderate: 480, active: 620, very_active: 780 };
+
+    // Helper para dibujar el tic cuadrado ("moderno") o redondo ("clásico")
+    function renderTick(isChecked) {
+      return `<div class="tick-box ${state.uiTickStyle} ${isChecked ? 'checked' : ''}">✓</div>`;
+    }
+
+    // SVG de 3 Anillos Concéntricos estilo Apple Fitness
+    function renderAppleFitnessRingsSVG(size, movePct, dietPct, hydroPct, strokeW = 6) {
+      const center = size / 2;
+      const r1 = center - strokeW;
+      const r2 = r1 - strokeW - 3;
+      const r3 = r2 - strokeW - 3;
+
+      const c1 = 2 * Math.PI * r1;
+      const c2 = 2 * Math.PI * r2;
+      const c3 = 2 * Math.PI * r3;
+
+      const o1 = c1 * (1 - Math.min(1, movePct / 100));
+      const o2 = c2 * (1 - Math.min(1, dietPct / 100));
+      const o3 = c3 * (1 - Math.min(1, hydroPct / 100));
+
+      return `
+        <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform: rotate(-90deg);">
+          <circle cx="${center}" cy="${center}" r="${r1}" fill="none" stroke="rgba(250,17,79,0.2)" stroke-width="${strokeW}" />
+          <circle cx="${center}" cy="${center}" r="${r1}" fill="none" stroke="#FA114F" stroke-width="${strokeW}" stroke-linecap="round" stroke-dasharray="${c1}" stroke-dashoffset="${o1}" />
+          <circle cx="${center}" cy="${center}" r="${r2}" fill="none" stroke="rgba(146,232,42,0.2)" stroke-width="${strokeW}" />
+          <circle cx="${center}" cy="${center}" r="${r2}" fill="none" stroke="#92E82A" stroke-width="${strokeW}" stroke-linecap="round" stroke-dasharray="${c2}" stroke-dashoffset="${o2}" />
+          <circle cx="${center}" cy="${center}" r="${r3}" fill="none" stroke="rgba(0,215,255,0.2)" stroke-width="${strokeW}" />
+          <circle cx="${center}" cy="${center}" r="${r3}" fill="none" stroke="#00D7FF" stroke-width="${strokeW}" stroke-linecap="round" stroke-dasharray="${c3}" stroke-dashoffset="${o3}" />
+        </svg>
+      `;
+    }
+
+    function computeMetrics() {
+      const p = state.profile;
+      const baseBmr = 10 * p.weightKg + 6.25 * p.heightCm - 5 * p.age;
+      const bmr = Math.round(p.gender === 'male' ? baseBmr + 5 : baseBmr - 161);
+      const tdee = Math.round(bmr * (multipliers[p.activityLevel] || 1.55));
+      let burn = Math.round(baseBurn[p.activityLevel] * (p.weightKg / 72));
+      if (p.goal === 'lose_fast') burn += 140;
+      else if (p.goal === 'lose') burn += 90;
+
+      const minCal = p.gender === 'male' ? 1450 : 1200;
+      const consume = Math.max(minCal, Math.round(tdee + goalDeltas[p.goal]));
+      const hM = p.heightCm / 100;
+      const bmi = (p.weightKg / (hM * hM)).toFixed(1);
+
+      let pPct = 30, cPct = 40, fPct = 30;
+      if (state.preferences.dietType === 'keto') { pPct = 25; cPct = 7; fPct = 68; }
+      else if (state.preferences.dietType === 'high_protein') { pPct = 35; cPct = 40; fPct = 25; }
+      else if (state.preferences.dietType === 'vegan') { pPct = 25; cPct = 48; fPct = 27; }
+
+      const waterLiters = (p.weightKg * 0.035 + burn / 1000 + (state.preferences.selectedSupplements.includes('creatine') ? 0.4 : 0)).toFixed(1);
+
+      return {
+        bmr, tdee, consume, burn, bmi, waterLiters,
+        protein: Math.round((consume * (pPct / 100)) / 4),
+        carbs: Math.round((consume * (cPct / 100)) / 4),
+        fat: Math.round((consume * (fPct / 100)) / 9),
+        pPct, cPct, fPct
+      };
+    }
+
+    // Mezcla recetas clásicas con recetas nuevas según la semana elegida
+    function getMealForWeekAndDay(dayIdx, mealType) {
+      const baseMeal = SEVEN_DAYS_MENUS[dayIdx].meals[mealType] || SEVEN_DAYS_MENUS[dayIdx].meals['Desayuno'];
+      if (state.currentWeekNumber === 1) {
+        return { ...baseMeal, isNewThisWeek: false };
+      }
+      // En semanas 2, 3, 4 rotamos ~50% de platos con recetas nuevas y mantenemos clásicos favoritos
+      const pool = EXTRA_WEEKLY_RECIPES[mealType];
+      if (pool && (dayIdx + state.currentWeekNumber) % 2 === 0) {
+        const picked = pool[(dayIdx + state.currentWeekNumber) % pool.length];
+        return { ...picked, isNewThisWeek: true };
+      }
+      return { ...baseMeal, isNewThisWeek: false };
+    }
+
+    // Categoriza un ingrediente según pasillo del supermercado
+    function categorizeShoppingIngredient(rawName) {
+      const s = rawName.toLowerCase();
+      if (/pollo|pavo|ternera|merluza|salm[oó]n|at[uú]n|lubina|dorada|gambones|bacalao|huevo|claras|lomo|solomillo|jam[oó]n/.test(s)) {
+        return '🥩 Carnes, Pescados y Huevos';
+      }
+      if (/skyr|yogur|queso|cottage|mozzarella|feta|leche|bebida|k[eé]fir/.test(s)) {
+        return '🥛 Lácteos Fit, Quesos y Bebidas';
+      }
+      if (/avena|arroz|quinoa|pan|bagel|tortitas|pasta|garbanzos|lentejas|boniato|patata|gnocchi|fajita|cusc[uú]s/.test(s)) {
+        return '🌾 Hidratos, Panes, Cereales y Tubérculos';
+      }
+      if (/aguacate|pl[aá]tano|frutos rojos|ar[aá]ndanos|fresas|kiwi|manzana|esp[aá]rragos|espinacas|calabac[ií]n|br[oó]coli|tomate|pimiento|setas|calabaza|alcachofa|lim[oó]n|pepino|cebolla|can[oó]nigos|r[uú]cula|verduras|champi/.test(s)) {
+        return '🥑 Frutas, Verduras y Hortalizas Frescas';
+      }
+      return '🫒 Despensa, Frutos Secos y Suplementos';
+    }
+
+    // Parsea cantidad, unidad y nombre base de cada ingrediente para sumar el total semanal
+    function parseIngredientLine(line) {
+      const clean = line.trim();
+      const fracMatch = clean.match(/^(\d+)\/(\d+)\s+(.+)$/);
+      if (fracMatch) {
+        const val = parseFloat(fracMatch[1]) / parseFloat(fracMatch[2]);
+        const rest = fracMatch[3].trim();
+        return { qty: val, unit: 'ud', name: rest };
+      }
+      const numMatch = clean.match(/^(\d+(?:[.,]\d+)?)\s*(g|ml|kg|l|cdas?|cditas?|cazos?|rebanadas?|tortitas?|latas?)?\s+(?:de\s+)?(.+)$/i);
+      if (numMatch) {
+        const val = parseFloat(numMatch[1].replace(',', '.'));
+        let unit = (numMatch[2] || 'ud').toLowerCase();
+        if (unit === 'cda' || unit === 'cdas') unit = 'cda';
+        if (unit === 'cdita' || unit === 'cditas') unit = 'cdita';
+        if (unit === 'cazo' || unit === 'cazos') unit = 'cazos';
+        if (unit === 'rebanada' || unit === 'rebanadas') unit = 'rebanadas';
+        if (unit === 'tortita' || unit === 'tortitas') unit = 'tortitas';
+        if (unit === 'lata' || unit === 'latas') unit = 'latas';
+        return { qty: val, unit, name: numMatch[3].trim() };
+      }
+      return { qty: 1, unit: 'toma', name: clean };
+    }
+
+    // Normaliza la clave del ingrediente para agrupar iguales durante los 7 días de la semana
+    function normalizeIngredientKey(name, unit) {
+      let s = name.toLowerCase()
+        .replace(/de corral|camperos|campero|hass|frescos|frescas|fresco|fresca|natural 0%|natural 95%|natural|real|en dados|laminado|baby|al vapor|cocida|cocido/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      return `${s}__${unit}`;
+    }
+
+    // Calcula la Lista de la Compra Semanal Total (Lunes a Domingo) para las recetas de la semana activa
+    function computeWeeklyShoppingList() {
+      const mealTypes = state.preferences.mealsPerDay === 3
+        ? ['Desayuno', 'Almuerzo', 'Cena']
+        : state.preferences.mealsPerDay === 5
+        ? ['Desayuno', 'Media Mañana', 'Almuerzo', 'Merienda Post-Gym', 'Cena']
+        : ['Desayuno', 'Almuerzo', 'Merienda Post-Gym', 'Cena'];
+
+      const map = {};
+
+      SEVEN_DAYS_MENUS.forEach((dayObj, dayIdx) => {
+        mealTypes.forEach(mType => {
+          const recipe = getMealForWeekAndDay(dayIdx, mType);
+          (recipe.ingredients || []).forEach(ingLine => {
+            const parsed = parseIngredientLine(ingLine);
+            const normKey = normalizeIngredientKey(parsed.name, parsed.unit);
+            const itemKey = `w${state.currentWeekNumber}-${normKey}`;
+            if (!map[itemKey]) {
+              map[itemKey] = {
+                key: itemKey,
+                displayName: parsed.name.charAt(0).toUpperCase() + parsed.name.slice(1),
+                unit: parsed.unit,
+                totalQty: 0,
+                occurrences: 0,
+                daysUsed: new Set(),
+                category: categorizeShoppingIngredient(parsed.name),
+                isCustom: false
+              };
+            }
+            map[itemKey].totalQty += parsed.qty;
+            map[itemKey].occurrences += 1;
+            map[itemKey].daysUsed.add(dayObj.day.slice(0, 3));
+          });
+        });
+      });
+
+      const items = Object.values(map).map(it => {
+        let qtyLabel = '';
+        const rounded = Math.round(it.totalQty * 10) / 10;
+        if (it.unit === 'g') {
+          qtyLabel = rounded >= 1000 ? `${(rounded / 1000).toFixed(2)} kg (${rounded}g)` : `${rounded} g`;
+        } else if (it.unit === 'ml') {
+          qtyLabel = rounded >= 1000 ? `${(rounded / 1000).toFixed(2)} L (${rounded}ml)` : `${rounded} ml`;
+        } else if (it.unit === 'ud') {
+          qtyLabel = `${Math.ceil(rounded)} ud.`;
+        } else if (it.unit === 'toma') {
+          qtyLabel = `Para ${it.occurrences} ${it.occurrences === 1 ? 'comida' : 'comidas'}`;
+        } else {
+          qtyLabel = `${rounded} ${it.unit}`;
+        }
+        return {
+          ...it,
+          qtyLabel,
+          daysText: Array.from(it.daysUsed).join(', ')
+        };
+      });
+
+      // Añadir productos personalizados agregados por el usuario
+      (state.customShoppingItems || []).forEach(customIt => {
+        items.push({
+          key: customIt.id,
+          displayName: customIt.name,
+          qtyLabel: customIt.qty || 'Extra semanal',
+          daysText: 'Añadido por ti',
+          category: customIt.category || '🫒 Despensa, Frutos Secos y Suplementos',
+          isCustom: true
+        });
+      });
+
+      const categoriesOrder = [
+        '🥩 Carnes, Pescados y Huevos',
+        '🌾 Hidratos, Panes, Cereales y Tubérculos',
+        '🥑 Frutas, Verduras y Hortalizas Frescas',
+        '🥛 Lácteos Fit, Quesos y Bebidas',
+        '🫒 Despensa, Frutos Secos y Suplementos'
+      ];
+
+      const grouped = categoriesOrder.map(cat => ({
+        category: cat,
+        items: items.filter(i => i.category === cat)
+      })).filter(g => g.items.length > 0);
+
+      const totalCount = items.length;
+      const boughtCount = items.filter(i => !!state.checkedShoppingItems[i.key]).length;
+
+      return {
+        grouped,
+        totalCount,
+        boughtCount,
+        pctBought: totalCount > 0 ? Math.round((boughtCount / totalCount) * 100) : 0
+      };
+    }
+
+    function toggleShoppingItemChecked(itemKey) {
+      if (!state.checkedShoppingItems) state.checkedShoppingItems = {};
+      if (state.checkedShoppingItems[itemKey]) {
+        delete state.checkedShoppingItems[itemKey];
+      } else {
+        state.checkedShoppingItems[itemKey] = true;
+      }
+      render();
+    }
+
+    function addCustomShoppingItem() {
+      const nameEl = document.getElementById('custom-shop-name');
+      const qtyEl = document.getElementById('custom-shop-qty');
+      if (!nameEl) return;
+      const name = nameEl.value.trim();
+      const qty = qtyEl ? qtyEl.value.trim() : '';
+      if (!name) return;
+      if (!state.customShoppingItems) state.customShoppingItems = [];
+      state.customShoppingItems.unshift({
+        id: 'custom-shop-' + Date.now(),
+        name,
+        qty: qty || '1 ud.',
+        category: categorizeShoppingIngredient(name)
+      });
+      render();
+    }
+
+    function removeCustomShoppingItem(itemId, event) {
+      if (event) event.stopPropagation();
+      state.customShoppingItems = (state.customShoppingItems || []).filter(i => i.id !== itemId);
+      if (state.checkedShoppingItems && state.checkedShoppingItems[itemId]) {
+        delete state.checkedShoppingItems[itemId];
+      }
+      render();
+    }
+
+    function clearCheckedShoppingItems() {
+      state.checkedShoppingItems = {};
+      render();
+    }
+
+    function getSupplementsProtocol() {
+      const w = state.profile.weightKg;
+      const goal = state.profile.goal;
+      const isVegan = state.preferences.dietType === 'vegan';
+      const creatineGrams = Math.max(3, Math.round(w * 0.1));
+
+      const aiRecs = ['whey_protein', 'creatine'];
+      if (goal === 'lose_fast' || goal === 'lose') aiRecs.push('pre_workout', 'omega_vitamins');
+      else if (goal === 'gain_muscle') aiRecs.push('intra_carbs', 'casein_magnesium');
+      else aiRecs.push('omega_vitamins', 'casein_magnesium');
+
+      const setIds = new Set(state.preferences.selectedSupplements);
+      if (state.preferences.allowAiSupplementRecommendations) {
+        aiRecs.forEach(id => setIds.add(id));
+      }
+
+      const details = {
+        whey_protein: {
+          name: isVegan ? 'Proteína Vegetal Isolate (Guisante + Arroz)' : 'Proteína Whey Isolate (Aislado de Suero)',
+          icon: '🥤',
+          dosage: '1 cazo (30g = ~25g proteína pura)',
+          timing: 'Post-entreno o en la Merienda Fit',
+          contribution: 'Aporta aminoácidos de absorción rápida y alta leucina para activar la síntesis proteica muscular (MPS) sin añadir grasas ni azúcares.'
+        },
+        creatine: {
+          name: 'Creatina Monohidrato (Creapure®)',
+          icon: '⚡',
+          dosage: `${creatineGrams}g al día (0.1g x tus ${w}kg de peso)`,
+          timing: 'Todos los días junto al batido post-entreno o desayuno',
+          contribution: 'Satura los depósitos musculares de fosfocreatina para regenerar ATP en series pesadas y proteger tu masa muscular.'
+        },
+        pre_workout: {
+          name: 'Pre-Entreno (Cafeína Anhidra + L-Citrulina)',
+          icon: '🔥',
+          dosage: '1 scoop (200mg cafeína + 6g citrulina)',
+          timing: '25-30 minutos antes de entrenar',
+          contribution: 'Eleva la termogénesis y oxidación de grasas durante tu rutina, retrasa la fatiga y mejora el bombeo muscular.'
+        },
+        bcaa_eaa: {
+          name: 'Aminoácidos Esenciales (EAA / BCAA)',
+          icon: '🧬',
+          dosage: '10g en 500ml de agua',
+          timing: 'Durante la sesión de gimnasio (Intra-entreno)',
+          contribution: 'Evita el catabolismo muscular durante entrenamientos exigentes o cuando estás en déficit calórico.'
+        },
+        omega_vitamins: {
+          name: isVegan ? 'Omega-3 de Microalgas + Vitamina B12 y D3' : 'Omega-3 (EPA/DHA) + Vitamina D3 + K2',
+          icon: '💊',
+          dosage: '2 perlas Omega-3 (2000mg) + 2000 UI D3',
+          timing: 'Con el Almuerzo o la Cena',
+          contribution: 'Antiinflamatorio natural que mejora la sensibilidad a la insulina y cuida las articulaciones.'
+        },
+        casein_magnesium: {
+          name: 'Magnesio Bisglicinato + Recuperador Nocturno',
+          icon: '🌙',
+          dosage: '300mg Magnesio elemental',
+          timing: '30 minutos antes de dormir',
+          contribution: 'Relaja el sistema nervioso, evita sobrecargas musculares y optimiza el sueño profundo reparador.'
+        },
+        intra_carbs: {
+          name: 'Ciclodextrina (Cluster Dextrin®) Intra-Entreno',
+          icon: '🔋',
+          dosage: '30g en 600ml de agua',
+          timing: 'A sorbos durante el entrenamiento de fuerza',
+          contribution: 'Proporciona energía inmediata sin digestión pesada para entrenamientos intensos.'
+        }
+      };
+
+      return Array.from(setIds).map(id => ({
+        id,
+        ...details[id],
+        isChosen: state.preferences.selectedSupplements.includes(id)
+      }));
+    }
+
+    function buildAiImageUrl(prompt, seed) {
+      const enc = encodeURIComponent(`professional overhead food photography of ${prompt}, gourmet healthy fitness plating, natural daylight, 4k`);
+      return `https://image.pollinations.ai/prompt/${enc}?width=600&height=340&nologo=true&seed=${seed}`;
+    }
+
+    function applyThemeStyles() {
+      const frame = document.getElementById('phone-frame');
+      const isDark = state.themePreference === 'dark' ||
+        (state.themePreference === 'system' && state.systemColorScheme === 'dark');
+
+      frame.classList.toggle('dark-theme', isDark);
+
+      const pal = ACCENT_THEMES[state.accentKey] || ACCENT_THEMES.monochrome;
+      const activeHex = (isDark && pal.darkHex) ? pal.darkHex : pal.hex;
+      const activeSoft = (isDark && pal.darkSoft) ? pal.darkSoft : pal.soft;
+      const activeOnAccent = isDark ? (pal.onAccentDark || '#090D16') : (pal.onAccentLight || '#FFFFFF');
+
+      document.documentElement.style.setProperty('--accent', activeHex);
+      document.documentElement.style.setProperty('--accent-soft', activeSoft);
+      document.documentElement.style.setProperty('--on-accent', activeOnAccent);
+    }
+
+    function setDevice(os) {
+      const frame = document.getElementById('phone-frame');
+      document.getElementById('btn-ios').classList.toggle('active', os === 'ios');
+      document.getElementById('btn-android').classList.toggle('active', os === 'android');
+      frame.classList.toggle('android', os === 'android');
+      document.getElementById('device-os-tag').textContent = os === 'ios' ? 'iOS 18 • 5G 🔋' : 'Android 15 • 5G 🔋';
+    }
+
+    function setSystemThemeSimulation(mode) {
+      state.systemColorScheme = mode;
+      document.getElementById('btn-theme-light').classList.toggle('active', mode === 'light');
+      document.getElementById('btn-theme-dark').classList.toggle('active', mode === 'dark');
+      applyThemeStyles();
+      render();
+    }
+
+    function handleLocalPhotoUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        state.profilePhotoUrl = e.target.result;
+        render();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleRecipeUserPhotoUpload(event, rKey) {
+      const files = event.target.files;
+      if (!files || !files.length) return;
+      if (!state.userRecipePhotos[rKey]) {
+        state.userRecipePhotos[rKey] = [];
+      }
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          state.userRecipePhotos[rKey].push(e.target.result);
+          render();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function removeRecipeUserPhoto(rKey, photoIdx) {
+      if (!state.userRecipePhotos[rKey]) return;
+      state.userRecipePhotos[rKey].splice(photoIdx, 1);
+      render();
+    }
+
+    function selectWeekdayEverywhere(dayIdx) {
+      const weekDays = getWeekDaysForDate(parseDateKey(state.selectedDateKey));
+      const target = weekDays[dayIdx];
+      state.selectedDay = dayIdx;
+      if (target) {
+        state.selectedDateKey = target.dateKey;
+        state.calendarYear = target.year;
+        state.calendarMonth = target.monthIndex;
+      }
+      render();
+    }
+
+    function selectCalendarDate(dateKey) {
+      if (!dateKey) return;
+      const meta = getDateMetadata(dateKey);
+      state.selectedDateKey = meta.dateKey;
+      state.selectedDay = meta.weekdayIndex;
+      state.calendarYear = meta.year;
+      state.calendarMonth = meta.monthIndex;
+      render();
+    }
+
+    function changeCalendarMonth(delta) {
+      const nextDate = new Date(state.calendarYear, state.calendarMonth + delta, 1);
+      state.calendarYear = nextDate.getFullYear();
+      state.calendarMonth = nextDate.getMonth();
+      const curSel = parseDateKey(state.selectedDateKey);
+      const maxDay = new Date(state.calendarYear, state.calendarMonth + 1, 0).getDate();
+      const targetDay = Math.min(curSel.getDate(), maxDay);
+      const updatedSel = new Date(state.calendarYear, state.calendarMonth, targetDay);
+      state.selectedDateKey = formatDateKey(updatedSel);
+      state.selectedDay = (updatedSel.getDay() + 6) % 7;
+      render();
+    }
+
+    function jumpToDeviceToday() {
+      const today = getDeviceToday();
+      state.calendarYear = today.getFullYear();
+      state.calendarMonth = today.getMonth();
+      state.selectedDateKey = formatDateKey(today);
+      state.selectedDay = (today.getDay() + 6) % 7;
+      render();
+    }
+
+    function addWaterToDay(dateKey, delta) {
+      const rec = getDayRecordByDateKey(dateKey);
+      if (!rec) return;
+      rec.waterGlasses = Math.max(0, (rec.waterGlasses || 0) + delta);
+      render();
+    }
+
+    function render() {
+      applyThemeStyles();
+      if (state.currentUser) {
+        saveCurrentUserState();
+      }
+      const mount = document.getElementById('app-mount');
+      const m = computeMetrics();
+      const supps = getSupplementsProtocol();
+
+      // Estadísticas en tiempo real de la fecha activa del calendario del dispositivo
+      const activeDateKey = getDateKeyForActiveWeekday(state.selectedDay);
+      state.selectedDateKey = activeDateKey;
+      const activeDateMeta = getDateMetadata(activeDateKey);
+      const dayStats = computeDayRealtimeStats(activeDateKey, m);
+      const totalConsumed = dayStats.consumed;
+      const totalProt = dayStats.prot;
+      const totalCarbs = dayStats.carbs;
+      const totalFat = dayStats.fat;
+      const totalBurned = dayStats.burned;
+      const pctC = dayStats.dietPct;
+      const pctB = dayStats.movePct;
+
+      // 1. INTRO MINIMALISTA Y LIMPIA (SIEMPRE SALE EL LOGO Y SI YA ESTÁS REGISTRADO SALE EL APARTADO "ENTRAR")
+      if (state.stage === 'intro') {
+        const db = getUsersDb();
+        const hasSavedUsers = Object.keys(db).length > 0;
+        const isUserRegisteredAndReady = !!(state.currentUser && state.onboardingCompleted);
+
+        mount.innerHTML = `
+          <div class="intro-screen">
+            <div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              <div class="gt-logo-circle large"><span class="gt-logo-letters">GT!</span></div>
+              <div class="brand-title-large">GymTrack!</div>
+              <div class="brand-tagline">SMART CALORIES • AI DIETS • ROUTINES</div>
+              <div class="brand-author">App By KenKu</div>
+            </div>
+            <div style="width:100%;display:flex;flex-direction:column;gap:10px;">
+              ${isUserRegisteredAndReady ? `
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                  <div style="display:flex;align-items:center;gap:10px;text-align:left;">
+                    <img src="${state.profilePhotoUrl}" style="width:38px;height:38px;border-radius:50%;border:2px solid var(--accent);" />
+                    <div>
+                      <div style="font-size:13px;font-weight:900;color:var(--text);">Hola, ${state.profile.name}</div>
+                      <div style="font-size:10.5px;color:var(--muted);font-weight:700;">@${state.currentUser} • Sesión guardada</div>
+                    </div>
+                  </div>
+                  <button onclick="state.stage='auth';state.authMode='login';render()" style="background:var(--surface-elevated);border:1px solid var(--border);color:var(--text-sec);padding:6px 10px;border-radius:9px;font-size:10.5px;font-weight:800;cursor:pointer;">
+                    Cambiar cuenta
+                  </button>
+                </div>
+                <button class="btn-primary" onclick="state.stage='main';state.tab='diet';render()">
+                  Entrar →
+                </button>
+              ` : `
+                <button class="btn-primary" onclick="state.stage='auth';state.authMode='${hasSavedUsers ? 'login' : 'register'}';render()">
+                  ${hasSavedUsers ? '🔑 Iniciar Sesión' : '✨ Registrarse / Comenzar →'}
+                </button>
+                ${hasSavedUsers ? `
+                  <button class="btn-back" style="width:100%;" onclick="state.stage='auth';state.authMode='register';render()">
+                    ✨ Crear Cuenta Nueva
+                  </button>
+                ` : ''}
+              `}
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // 1.5. PANTALLA DE ACCESO: INICIAR SESIÓN O CREAR CUENTA (CON USUARIO Y CONTRASEÑA)
+      if (state.stage === 'auth') {
+        const db = getUsersDb();
+        const savedUserAccounts = Object.values(db);
+        mount.innerHTML = `
+          <div class="app-header">
+            <div class="brand-row">
+              <div class="gt-logo-circle small"><span class="gt-logo-letters">GT!</span></div>
+              <div>
+                <div class="app-title">GymTrack!</div>
+                <div class="app-sub">Acceso de Usuario • App By KenKu</div>
+              </div>
+            </div>
+          </div>
+          <div class="screen-body" style="display:flex;flex-direction:column;justify-content:center;">
+            <div class="seg-row">
+              <button class="seg-btn ${state.authMode === 'login' ? 'active' : ''}" onclick="state.authMode='login';state.authErrorMsg='';render()">
+                🔑 Iniciar Sesión
+              </button>
+              <button class="seg-btn ${state.authMode === 'register' ? 'active' : ''}" onclick="state.authMode='register';state.authErrorMsg='';render()">
+                ✨ Crear Cuenta
+              </button>
+            </div>
+
+            <div class="card">
+              <div class="step-badge">${state.authMode === 'login' ? 'ACCESO A TU CUENTA GUARDADA' : 'REGISTRO ÚNICO DE USUARIO'}</div>
+              <div class="card-title">${state.authMode === 'login' ? 'Inicia sesión con tu usuario' : 'Crea tu usuario y contraseña'}</div>
+              <div class="card-helper">
+                ${state.authMode === 'login'
+                  ? 'Entrarás directamente a tus dietas, rutinas y registro sin tener que volver a rellenar el cuestionario.'
+                  : 'Solo tendrás que configurar tus datos una vez. Quedarán guardados siempre en tu usuario.'
+                }
+              </div>
+
+              ${state.authErrorMsg ? `
+                <div style="background:rgba(239,68,68,0.14);border:1px solid #EF4444;color:#EF4444;padding:9px 11px;border-radius:10px;font-size:12px;font-weight:700;margin-bottom:10px;">
+                  ⚠️ ${state.authErrorMsg}
+                </div>
+              ` : ''}
+
+              <label class="label">👤 Nombre de Usuario</label>
+              <input class="input" placeholder="Ej: kenku" value="${state.authUsernameInput}" oninput="state.authUsernameInput=this.value" />
+
+              <label class="label">🔒 Contraseña</label>
+              <input class="input" type="password" placeholder="Introduce tu contraseña" value="${state.authPasswordInput}" oninput="state.authPasswordInput=this.value" onkeydown="if(event.key==='Enter')handleAuthSubmit()" />
+
+              <button class="btn-primary" style="margin-top:14px;" onclick="handleAuthSubmit()">
+                ${state.authMode === 'login' ? '🔑 Entrar a mi Cuenta →' : '✨ Crear Cuenta y Configurar (1 sola vez) →'}
+              </button>
+            </div>
+
+            ${savedUserAccounts.length > 0 ? `
+              <div class="card">
+                <div class="step-badge">CUENTAS GUARDADAS EN ESTE DISPOSITIVO</div>
+                <div class="card-helper" style="margin-bottom:8px;">Toca tu usuario para rellenarlo rápidamente:</div>
+                ${savedUserAccounts.map(acc => `
+                  <div class="opt-row" onclick="state.authMode='login';state.authUsernameInput='${acc.username}';state.authErrorMsg='';render()">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                      <img src="${acc.profilePhotoUrl || FITNESS_FOOD_AVATARS[0].url}" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--accent);" />
+                      <div>
+                        <div class="opt-title">@${acc.username} (${(acc.profile && acc.profile.name) || acc.username})</div>
+                        <div class="opt-sub">${acc.onboardingCompleted ? '✓ Datos y dieta guardados' : 'Configuración pendiente'}</div>
+                      </div>
+                    </div>
+                    <span style="font-size:11px;font-weight:800;color:var(--accent);">Seleccionar →</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            <button class="btn-back" style="width:100%;margin-top:4px;" onclick="state.stage='intro';render()">
+              ← Volver a la pantalla de inicio
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      // 2. ONBOARDING EN 5 PASOS ORDENADOS (SOLO NECESARIO UNA VEZ AL CREAR LA CUENTA)
+      if (state.stage === 'onboarding') {
+        const step = state.onboardingStep;
+        let stepHtml = '';
+
+        if (step === 1) {
+          stepHtml = `
+            <div class="card">
+              <div class="step-badge">PASO 1 DE 5 • SOBRE TI</div>
+              <div class="card-title">¿Cómo te llamas y cuál es tu perfil?</div>
+              <label class="label">Tu Nombre</label>
+              <input class="input" value="${state.profile.name}" oninput="state.profile.name=this.value;saveCurrentUserState()" />
+              <label class="label">Género Biológico</label>
+              <div class="seg-row">
+                <button class="seg-btn ${state.profile.gender === 'male' ? 'active' : ''}" onclick="state.profile.gender='male';render()">♂ Hombre</button>
+                <button class="seg-btn ${state.profile.gender === 'female' ? 'active' : ''}" onclick="state.profile.gender='female';render()">♀ Mujer</button>
+              </div>
+              <label class="label">Edad (años)</label>
+              <input class="input" type="number" value="${state.profile.age}" oninput="updateNum('age', this.value)" />
+            </div>
+          `;
+        } else if (step === 2) {
+          stepHtml = `
+            <div class="card">
+              <div class="step-badge">PASO 2 DE 5 • MEDIDAS CORPORALES</div>
+              <div class="card-title">Introduce tu peso y altura</div>
+              <div class="row-2">
+                <div>
+                  <label class="label">Peso Actual (kg)</label>
+                  <input class="input" type="number" value="${state.profile.weightKg}" oninput="updateNum('weightKg', this.value)" />
+                </div>
+                <div>
+                  <label class="label">Altura (cm)</label>
+                  <input class="input" type="number" value="${state.profile.heightCm}" oninput="updateNum('heightCm', this.value)" />
+                </div>
+              </div>
+              <label class="label">Peso Objetivo (kg)</label>
+              <input class="input" type="number" value="${state.profile.targetWeightKg}" oninput="updateNum('targetWeightKg', this.value)" />
+            </div>
+          `;
+        } else if (step === 3) {
+          stepHtml = `
+            <div class="card">
+              <div class="step-badge">PASO 3 DE 5 • ACTIVIDAD Y OBJETIVO</div>
+              <div class="card-title">¿Cuánto entrenas y cuál es tu meta?</div>
+              ${[
+                ['sedentary', 'Sedentario', 'Poco ejercicio'],
+                ['light', 'Ligero', '1-3 días/semana'],
+                ['moderate', 'Moderado', '3-5 días/semana'],
+                ['active', 'Activo / Intenso', '6-7 días/semana']
+              ].map(([k, t, s]) => {
+                const act = state.profile.activityLevel === k;
+                return `
+                  <div class="opt-row ${act ? 'active' : ''}" onclick="state.profile.activityLevel='${k}';render()">
+                    <div><div class="opt-title">${t}</div><div class="opt-sub">${s}</div></div>
+                    ${renderTick(act)}
+                  </div>
+                `;
+              }).join('')}
+
+              <label class="label">Objetivo Corporal</label>
+              ${[
+                ['lose_fast', 'Definición / Perder grasa rápido (-600 kcal)'],
+                ['lose', 'Perder peso saludable (-400 kcal)'],
+                ['maintain', 'Mantener peso (0 kcal)'],
+                ['gain_muscle', 'Ganar masa muscular (+350 kcal)']
+              ].map(([k, t]) => {
+                const act = state.profile.goal === k;
+                return `
+                  <div class="opt-row ${act ? 'active' : ''}" onclick="state.profile.goal='${k}';render()">
+                    <div class="opt-title">${t}</div>
+                    ${renderTick(act)}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        } else if (step === 4) {
+          stepHtml = `
+            <div class="card">
+              <div class="step-badge">PASO 4 DE 5 • GUSTOS Y PREFERENCIAS</div>
+              <div class="card-title">¿Qué tipo de dieta prefieres?</div>
+              ${[
+                ['mediterranean', '🫒 Mediterránea Equilibrada'],
+                ['high_protein', '💪 Alta en Proteína / Fitness'],
+                ['omnivore', '🥩 Omnívora Flexible'],
+                ['vegetarian', '🥚 Vegetariana'],
+                ['vegan', '🌱 Vegana 100% Vegetal'],
+                ['keto', '🥑 Cetogénica (Keto)']
+              ].map(([k, t]) => {
+                const act = state.preferences.dietType === k;
+                return `
+                  <div class="opt-row ${act ? 'active' : ''}" onclick="state.preferences.dietType='${k}';render()">
+                    <div class="opt-title">${t}</div>
+                    ${renderTick(act)}
+                  </div>
+                `;
+              }).join('')}
+
+              <label class="label">🚫 Alergias o Intolerancias</label>
+              <div class="chips">
+                ${['Gluten', 'Lactosa', 'Frutos secos', 'Marisco', 'Huevo', 'Soja'].map(a => {
+                  const act = state.preferences.allergies.includes(a);
+                  return `<span class="chip ${act ? 'active' : ''}" onclick="toggleAllergy('${a}')">${act ? '✓ Sin ' + a : a}</span>`;
+                }).join('')}
+              </div>
+
+              <label class="label">😍 Alimentos Favoritos</label>
+              <input class="input" value="${state.preferences.favoriteFoods}" oninput="state.preferences.favoriteFoods=this.value;saveCurrentUserState()" />
+            </div>
+          `;
+        } else if (step === 5) {
+          stepHtml = `
+            <div class="card">
+              <div class="step-badge">PASO 5 DE 5 • SUPLEMENTOS DE GIMNASIO E IA</div>
+              <div class="card-title">¿Qué suplementos tomas o quieres añadir?</div>
+              <div class="card-helper">Se integrarán directamente en tus comidas y en el apartado de <b>Rutinas</b> con la explicación de lo que aportan.</div>
+
+              <div class="opt-row ${state.preferences.allowAiSupplementRecommendations ? 'active' : ''}" onclick="state.preferences.allowAiSupplementRecommendations=!state.preferences.allowAiSupplementRecommendations;render()">
+                <div>
+                  <div class="opt-title">🧠 Permitir recomendación inteligente de la IA</div>
+                  <div class="opt-sub">La IA recomendará los suplementos ideales para tu dieta y objetivo</div>
+                </div>
+                ${renderTick(state.preferences.allowAiSupplementRecommendations)}
+              </div>
+
+              ${Object.entries(SUPPLEMENT_CATALOG).map(([id, info]) => {
+                const sel = state.preferences.selectedSupplements.includes(id);
+                return `
+                  <div class="opt-row ${sel ? 'active' : ''}" onclick="toggleSupp('${id}')">
+                    <div style="font-size:22px">${info.icon}</div>
+                    <div style="flex:1">
+                      <div class="opt-title">${info.name}</div>
+                      <div class="opt-sub">${info.short}</div>
+                    </div>
+                    ${renderTick(sel)}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }
+
+        mount.innerHTML = `
+          <div class="app-header">
+            <div class="brand-row">
+              <div class="gt-logo-circle small"><span class="gt-logo-letters">GT!</span></div>
+              <div>
+                <div class="app-title">GymTrack!</div>
+                <div class="app-sub">Paso ${step} de 5 • Configuración única</div>
+              </div>
+            </div>
+            <div class="step-dots">
+              ${[1,2,3,4,5].map(s => `<div class="step-dot ${s === step ? 'active' : s < step ? 'done' : ''}"></div>`).join('')}
+            </div>
+          </div>
+          <div class="screen-body">
+            ${stepHtml}
+            <div class="wizard-actions">
+              <button class="btn-back" onclick="${step > 1 ? 'state.onboardingStep--;render()' : 'state.stage=\'auth\';render()'}">
+                ← ${step > 1 ? 'Atrás' : 'Cuenta'}
+              </button>
+              ${step < 5
+                ? `<button class="btn-primary" onclick="state.onboardingStep++;render()">Siguiente (${step}/5) →</button>`
+                : `<button class="btn-primary" onclick="state.onboardingCompleted=true;saveCurrentUserState();state.stage='main';state.tab='diet';render()">✨ Guardar en mi Cuenta y Entrar</button>`
+              }
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // 3. DASHBOARD PRINCIPAL
+      let tabContent = '';
+
+      // ================= PESTAÑA 1: DIETAS (CON "MEDIDOR", RECETAS Y APARTADO DE COMPRAS SEMANALES TOTALES) =================
+      if (state.tab === 'diet') {
+        const currentDayObj = SEVEN_DAYS_MENUS[state.selectedDay];
+        const weekDaysList = getWeekDaysForDate(parseDateKey(activeDateKey));
+        const splits = state.preferences.mealsPerDay === 3
+          ? [['Desayuno', '08:30', 0.3], ['Almuerzo', '14:00', 0.42], ['Cena', '21:00', 0.28]]
+          : state.preferences.mealsPerDay === 5
+          ? [['Desayuno', '08:00', 0.22], ['Media Mañana', '11:15', 0.12], ['Almuerzo', '14:15', 0.32], ['Merienda Post-Gym', '18:00', 0.14], ['Cena', '21:15', 0.20]]
+          : [['Desayuno', '08:00', 0.25], ['Almuerzo', '14:00', 0.35], ['Merienda Post-Gym', '17:45', 0.15], ['Cena', '21:00', 0.25]];
+
+        const hasWhey = supps.some(s => s.id === 'whey_protein');
+        const hasCreatine = supps.some(s => s.id === 'creatine');
+        const hasOmega = supps.some(s => s.id === 'omega_vitamins');
+        const shoppingData = computeWeeklyShoppingList();
+
+        tabContent = `
+          <!-- MEDIDOR SUPERIOR EN TIEMPO REAL DEL DÍA SELECCIONADO -->
+          <div class="live-gauge-card">
+            <div class="gauge-top-row">
+              <span class="step-badge" style="margin:0;">⚡ MEDIDOR • ${currentDayObj.day.toUpperCase()} ${activeDateMeta.dayOfMonth} ${activeDateMeta.monthName.slice(0,3).toUpperCase()}</span>
+              <button class="water-pill" onclick="addWaterToDay('${activeDateKey}', 1)">
+                💧 ${dayStats.waterL}L / ${m.waterLiters}L (+1 vaso)
+              </button>
+            </div>
+
+            <div class="gauge-bar-label">
+              <span>🍽️ Calorías Consumidas (${currentDayObj.day} ${activeDateMeta.dayOfMonth})</span>
+              <span style="color:var(--accent)">${totalConsumed} / ${m.consume} kcal (${pctC}%)</span>
+            </div>
+            <div class="progress-bg"><div class="progress-fill-g" style="width:${pctC}%"></div></div>
+
+            <div class="gauge-bar-label">
+              <span>🔥 Calorías Quemadas (${currentDayObj.day} ${activeDateMeta.dayOfMonth})</span>
+              <span style="color:var(--orange)">${totalBurned} / ${m.burn} kcal (${pctB}%)</span>
+            </div>
+            <div class="progress-bg"><div class="progress-fill-o" style="width:${pctB}%"></div></div>
+
+            <div class="live-macros-grid">
+              <div class="live-macro-box">
+                <div style="font-size:12.5px;font-weight:900;color:#38BDF8">${totalProt} / ${m.protein}g</div>
+                <div style="font-size:10px;color:var(--muted)">Proteína</div>
+              </div>
+              <div class="live-macro-box">
+                <div style="font-size:12.5px;font-weight:900;color:var(--accent)">${totalCarbs} / ${m.carbs}g</div>
+                <div style="font-size:10px;color:var(--muted)">Carbos</div>
+              </div>
+              <div class="live-macro-box">
+                <div style="font-size:12.5px;font-weight:900;color:#FBBF24">${totalFat} / ${m.fat}g</div>
+                <div style="font-size:10px;color:var(--muted)">Grasas</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selector de Semana (Combina recetas nuevas junto a clásicas favoritas) -->
+          <div class="week-selector-bar">
+            <button class="week-btn" onclick="state.currentWeekNumber = Math.max(1, state.currentWeekNumber - 1);render()">◀ Semana ant.</button>
+            <div style="text-align:center;">
+              <div style="font-size:12px;font-weight:900;color:var(--text);">📅 Semana ${state.currentWeekNumber} del Plan</div>
+              <div style="font-size:10px;color:var(--muted);">Combina recetas nuevas IA + tus favoritas</div>
+            </div>
+            <button class="week-btn" onclick="state.currentWeekNumber = (state.currentWeekNumber % 4) + 1;render()">Semana sig. ▶</button>
+          </div>
+
+          <!-- Selector dentro de Dietas: Recetas vs Lista de Compras Semanal -->
+          <div class="seg-row" style="margin-bottom:10px;">
+            <button class="seg-btn ${state.dietSubView !== 'shopping' ? 'active' : ''}" onclick="state.dietSubView='meals';render()">
+              🍽️ Recetas de la Semana
+            </button>
+            <button class="seg-btn ${state.dietSubView === 'shopping' ? 'active' : ''}" onclick="state.dietSubView='shopping';render()">
+              🛒 Compras (${shoppingData.boughtCount}/${shoppingData.totalCount})
+            </button>
+          </div>
+
+          ${state.dietSubView === 'shopping' ? `
+            <!-- APARTADO DE COMPRAS SEMANALES EN TOTAL PARA LAS RECETAS DE LOS 7 DÍAS -->
+            <div class="card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <div>
+                  <div class="step-badge" style="margin:0;">🛒 LISTA DE LA COMPRA SEMANAL TOTAL</div>
+                  <div class="card-title" style="margin:2px 0 0;">Todo lo necesario para la Semana ${state.currentWeekNumber}</div>
+                </div>
+                ${shoppingData.boughtCount > 0 ? `
+                  <button class="week-btn" style="font-size:10.5px;padding:5px 9px;" onclick="clearCheckedShoppingItems()">
+                    ↺ Desmarcar
+                  </button>
+                ` : ''}
+              </div>
+              <div class="card-helper" style="margin-bottom:8px;">
+                Cantidades totales sumadas de las ${state.preferences.mealsPerDay * 7} comidas de Lunes a Domingo (${state.preferences.mealsPerDay} comidas/día):
+              </div>
+
+              <div class="gauge-bar-label">
+                <span>🛍️ Productos en tu cesta</span>
+                <span style="color:#38BDF8">${shoppingData.boughtCount} de ${shoppingData.totalCount} (${shoppingData.pctBought}%)</span>
+              </div>
+              <div class="progress-bg" style="margin-bottom:12px;">
+                <div class="progress-fill-g" style="width:${shoppingData.pctBought}%;background:#38BDF8;"></div>
+              </div>
+
+              <!-- Añadir producto extra personalizado a la compra semanal -->
+              <div style="display:flex;gap:6px;margin-bottom:6px;">
+                <input class="input" id="custom-shop-name" placeholder="Añadir extra (ej. Café, Especias...)" style="margin:0;flex:2;padding:9px 11px;font-size:12px;" />
+                <input class="input" id="custom-shop-qty" placeholder="Cantidad" style="margin:0;flex:1;padding:9px 11px;font-size:12px;" />
+                <button class="seg-btn active" style="flex:0 0 auto;padding:9px 13px;font-size:12px;" onclick="addCustomShoppingItem()">+ Añadir</button>
+              </div>
+            </div>
+
+            ${shoppingData.grouped.map(group => `
+              <div class="card">
+                <div class="card-title" style="font-size:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                  <span>${group.category}</span>
+                  <span style="font-size:11px;color:var(--muted);font-weight:800;">${group.items.length} prod.</span>
+                </div>
+                ${group.items.map(item => {
+                  const isChecked = !!state.checkedShoppingItems[item.key];
+                  return `
+                    <div class="opt-row ${isChecked ? 'active' : ''}" onclick="toggleShoppingItemChecked('${item.key.replace(/'/g, "\\'")}')" style="padding:10px 12px;">
+                      <div style="flex:1;padding-right:8px;">
+                        <div class="opt-title" style="${isChecked ? 'text-decoration:line-through;opacity:0.65;' : ''}">
+                          ${item.displayName}
+                        </div>
+                        <div class="opt-sub" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:3px;">
+                          <span style="color:#38BDF8;font-weight:800;">⚖️ Total semana: ${item.qtyLabel}</span>
+                          <span>• 📅 ${item.daysText}</span>
+                        </div>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        ${item.isCustom ? `
+                          <button onclick="removeCustomShoppingItem('${item.key}', event)" style="background:transparent;border:none;color:#EF4444;font-weight:900;cursor:pointer;font-size:12px;padding:2px 4px;">✕</button>
+                        ` : ''}
+                        ${renderTick(isChecked)}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            `).join('')}
+          ` : `
+            <div class="days-bar">
+              ${SEVEN_DAYS_MENUS.map((dObj, idx) => {
+                const wDayMeta = weekDaysList[idx];
+                return `
+                  <button class="day-pill ${state.selectedDay === idx ? 'active' : ''}" onclick="selectWeekdayEverywhere(${idx})">
+                    ${dObj.day} ${wDayMeta ? wDayMeta.dayOfMonth : ''}${wDayMeta && wDayMeta.isToday ? ' • Hoy' : ''}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            ${splits.map(([type, time, ratio], mIdx) => {
+              const mealData = getMealForWeekAndDay(state.selectedDay, type);
+              const cals = Math.round(m.consume * ratio);
+              const p = Math.round(m.protein * ratio);
+              const c = Math.round(m.carbs * ratio);
+              const f = Math.round(m.fat * ratio);
+              const rKey = `${activeDateKey}-w${state.currentWeekNumber}-${mIdx}`;
+              const recipePhotoKey = `w${state.currentWeekNumber}-${state.selectedDay}-${mIdx}`;
+              const isExp = state.expandedRecipeKey === rKey;
+              const isLogged = !!state.loggedMealsMap[rKey];
+              const userPhotos = state.userRecipePhotos[recipePhotoKey] || [];
+
+              let suppTag = '';
+              if (type.includes('Merienda') && (hasWhey || hasCreatine)) {
+                suppTag = `<div class="supp-inline">🥤 Suplemento en esta toma: ${hasWhey ? '1 cazo Proteína Isolate' : ''} ${hasCreatine ? '+ ' + Math.round(state.profile.weightKg*0.1) + 'g Creatina Monohidrato' : ''}</div>`;
+              } else if (type === 'Almuerzo' && hasOmega) {
+                suppTag = `<div class="supp-inline">💊 Toma aquí tus perlas de Omega-3 + Vitamina D3</div>`;
+              }
+
+              return `
+                <div class="meal-card ${isLogged ? 'logged' : ''}">
+                  <div class="meal-top">
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                      <span class="meal-badge">${type} • ${time}</span>
+                      ${mealData.isNewThisWeek
+                        ? `<span style="background:var(--accent);color:var(--on-accent);font-size:9px;font-weight:900;padding:2px 7px;border-radius:99px;">✨ NUEVA SEMANA</span>`
+                        : `<span style="background:var(--surface-elevated);color:var(--muted);border:1px solid var(--border);font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;">⭐ CLÁSICA</span>`
+                      }
+                    </div>
+                    <span class="meal-kcal">🔥 ${cals} kcal</span>
+                  </div>
+                  <div class="opt-title">${mealData.title}</div>
+                  <div class="opt-sub">${mealData.desc}</div>
+                  ${suppTag}
+                  <div class="meal-tags">
+                    <span class="meal-tag">🥩 Prot: ${p}g</span>
+                    <span class="meal-tag">🌾 Carbs: ${c}g</span>
+                    <span class="meal-tag">🥑 Grasas: ${f}g</span>
+                  </div>
+
+                  ${isExp ? `
+                    <div class="recipe-box">
+                      <div style="color:var(--accent);font-weight:800;margin-bottom:4px;">🛒 Ingredientes ajustados a tus ${cals} kcal:</div>
+                      ${mealData.ingredients.map(i => `<div>• ${i}</div>`).join('')}
+                      <div style="color:var(--accent);font-weight:800;margin:8px 0 4px;">👨‍🍳 Cómo se prepara paso a paso:</div>
+                      ${mealData.steps.map((s, idx) => `<div>${idx+1}. ${s}</div>`).join('')}
+                    </div>
+                  ` : ''}
+
+                  <!-- APARTADO PARA REGISTRAR TÚ TUS FOTOS DE CADA RECETA -->
+                  <div style="margin-top:8px;padding:9px 11px;background:var(--input-bg);border:1px dashed var(--border);border-radius:12px;">
+                    ${state.showUserRecipePhotos && userPhotos.length > 0 ? `
+                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+                        <span style="font-size:11px;font-weight:800;color:var(--accent);">📸 Tus fotos registradas (${userPhotos.length})</span>
+                        <label style="font-size:10.5px;font-weight:800;color:var(--blue);cursor:pointer;">
+                          + Añadir otra foto
+                          <input type="file" accept="image/*" multiple style="display:none" onchange="handleRecipeUserPhotoUpload(event, '${recipePhotoKey}')" />
+                        </label>
+                      </div>
+                      <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(110px, 1fr));gap:8px;">
+                        ${userPhotos.map((pUrl, pIdx) => `
+                          <div style="position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--border);height:92px;">
+                            <img src="${pUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" />
+                            <button onclick="removeRecipeUserPhoto('${recipePhotoKey}', ${pIdx})" style="position:absolute;top:4px;right:4px;background:rgba(9,13,22,0.82);color:#EF4444;border:none;border-radius:6px;padding:2px 6px;font-size:10px;font-weight:900;cursor:pointer;">✕</button>
+                          </div>
+                        `).join('')}
+                      </div>
+                    ` : `
+                      <label style="display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;font-size:11.5px;font-weight:800;color:var(--text-sec);">
+                        <span>📸 Registrar tu foto de esta receta (Cámara / Galería)</span>
+                        <input type="file" accept="image/*" multiple style="display:none" onchange="handleRecipeUserPhotoUpload(event, '${recipePhotoKey}')" />
+                      </label>
+                    `}
+                  </div>
+
+                  <div style="display:flex;gap:8px;margin-top:8px;">
+                    <button class="seg-btn" style="padding:8px;font-size:12px;" onclick="toggleRecipe('${rKey}')">
+                      ${isExp ? 'Ocultar receta ▲' : '👨‍🍳 Ver receta paso a paso ▼'}
+                    </button>
+                    <button class="seg-btn ${isLogged ? 'active' : ''}" style="padding:8px;font-size:12px;border-color:var(--accent);color:${isLogged ? 'var(--on-accent)' : 'var(--accent)'}" onclick="toggleLogMealInPlace('${rKey}', '${mealData.title.replace(/'/g, "\\'")}', ${cals}, ${p}, ${c}, ${f})">
+                      ${isLogged ? '✓ Registrada (' + currentDayObj.day.slice(0,3) + ' ' + activeDateMeta.dayOfMonth + ')' : '+ Registrar (' + currentDayObj.day.slice(0,3) + ' ' + activeDateMeta.dayOfMonth + ')'}
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          `}
+        `;
+      }
+
+      // ================= PESTAÑA 2: RUTINAS (TODO LO DEL GIMNASIO + REGISTRO + SUPLEMENTOS) =================
+      else if (state.tab === 'routines') {
+        const currentDayObj = SEVEN_DAYS_MENUS[state.selectedDay];
+        const activeDayRecord = getDayRecordByDateKey(activeDateKey);
+        const weekDaysList = getWeekDaysForDate(parseDateKey(activeDateKey));
+
+        tabContent = `
+          <div class="live-gauge-card" style="border-color:var(--orange)">
+            <div class="gauge-top-row">
+              <span class="step-badge" style="color:var(--orange);margin:0;">🏋️ MEDIDOR • ${currentDayObj.day.toUpperCase()} ${activeDateMeta.dayOfMonth} ${activeDateMeta.monthName.slice(0,3).toUpperCase()}</span>
+              <span style="font-size:11px;font-weight:800;color:var(--muted)">Meta: -${m.burn} kcal/día</span>
+            </div>
+            <div class="gauge-bar-label">
+              <span>🔥 Calorías Quemadas (${currentDayObj.day} ${activeDateMeta.dayOfMonth})</span>
+              <span style="color:var(--orange)">${totalBurned} / ${m.burn} kcal (${pctB}%)</span>
+            </div>
+            <div class="progress-bg" style="margin-bottom:4px;"><div class="progress-fill-o" style="width:${pctB}%"></div></div>
+          </div>
+
+          <div class="days-bar">
+            ${SEVEN_DAYS_MENUS.map((dObj, idx) => {
+              const wDayMeta = weekDaysList[idx];
+              return `
+                <button class="day-pill ${state.selectedDay === idx ? 'active' : ''}" style="${state.selectedDay === idx ? 'background:var(--orange);border-color:var(--orange);color:#fff' : ''}" onclick="selectWeekdayEverywhere(${idx})">
+                  ${dObj.day} ${wDayMeta ? wDayMeta.dayOfMonth : ''}${wDayMeta && wDayMeta.isToday ? ' • Hoy' : ''}
+                </button>
+              `;
+            }).join('')}
+          </div>
+
+          <div class="meal-card" style="border-color:var(--orange)">
+            <div class="meal-top">
+              <span class="meal-badge" style="color:var(--orange)">🎯 ${currentDayObj.workout.focus}</span>
+              <span style="color:var(--orange);font-weight:900;font-size:13px">-${m.burn} kcal</span>
+            </div>
+            <div class="opt-title" style="font-size:15px;margin-bottom:8px;">${currentDayObj.workout.title}</div>
+            <div class="recipe-box" style="margin-bottom:10px;">
+              <div style="color:var(--orange);font-weight:800;margin-bottom:5px;">📋 Ejercicios y Series del ${currentDayObj.day}:</div>
+              ${currentDayObj.workout.exercises.map((ex, i) => `<div style="margin-bottom:3px;font-weight:600;">${i+1}. ${ex}</div>`).join('')}
+            </div>
+            <button class="btn-primary" style="background:var(--orange);color:#fff;padding:11px;" onclick="logWorkoutInPlace('${currentDayObj.workout.title.replace(/'/g, "\\'")}', ${m.burn})">
+              ✓ Completar y Registrar Rutina en ${currentDayObj.day} ${activeDateMeta.dayOfMonth} (-${m.burn} kcal)
+            </button>
+          </div>
+
+          <div class="card">
+            <div class="card-title">📝 Registro de Gimnasio (${currentDayObj.day} ${activeDateMeta.dayOfMonth} ${activeDateMeta.monthName})</div>
+            <div class="row-2" style="margin-bottom:8px;">
+              <input class="input" id="custom-ex-name" placeholder="Ejercicio / Cardio extra" />
+              <input class="input" id="custom-ex-kcal" type="number" placeholder="Kcal quemadas" />
+            </div>
+            <button class="seg-btn active" style="width:100%;margin-bottom:10px;" onclick="addCustomWorkoutFromInput()">
+              + Añadir Ejercicio al ${currentDayObj.day} ${activeDateMeta.dayOfMonth}
+            </button>
+
+            ${activeDayRecord.exercises.length === 0
+              ? `<div class="opt-sub">Aún no has registrado entrenamientos el ${currentDayObj.day} ${activeDateMeta.dayOfMonth} de ${activeDateMeta.monthName}.</div>`
+              : activeDayRecord.exercises.map((e, eIdx) => `
+                <div class="opt-row">
+                  <div><div class="opt-title">🏋️ ${e.title}</div><div class="opt-sub">${e.time}</div></div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="color:var(--orange);font-weight:900">-${e.cals} kcal</span>
+                    <button onclick="removeWorkoutFromDay('${activeDateKey}', ${eIdx})" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-weight:900;">✕</button>
+                  </div>
+                </div>
+              `).join('')
+            }
+          </div>
+
+          <div class="card">
+            <div class="step-badge">PROTOCOLO DE SUPLEMENTACIÓN DEPORTIVA & IA</div>
+            <div class="card-title">⚡ Tus Suplementos de Gimnasio y Aportación</div>
+            <div class="card-helper">Sincronizados con tu entrenamiento y tu dieta (${m.consume} kcal):</div>
+
+            ${supps.map(s => `
+              <div class="recipe-box" style="border-color:${s.isChosen ? 'var(--accent)' : 'var(--blue)'};margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                  <span style="font-weight:900;font-size:13.5px;color:var(--text)">${s.icon} ${s.name}</span>
+                  <span style="font-size:10px;font-weight:900;color:${s.isChosen ? 'var(--accent)' : 'var(--blue)'}">
+                    ${s.isChosen ? '✓ TUYO' : '✨ RECOMENDADO IA'}
+                  </span>
+                </div>
+                <div style="color:var(--accent);font-weight:800;margin-bottom:2px;">⚖️ Dosis: ${s.dosage}</div>
+                <div style="color:var(--blue);font-weight:800;margin-bottom:5px;">⏰ Toma: ${s.timing}</div>
+                <div>🔬 <b>Aportación:</b> ${s.contribution}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      // ================= PESTAÑA 3: REGISTRO (CALENDARIO REAL DEL DISPOSITIVO + ANILLOS EN TIEMPO REAL DÍA POR DÍA) =================
+      else if (state.tab === 'fitness_log') {
+        const selectedMeta = getDateMetadata(state.selectedDateKey);
+        const selStats = computeDayRealtimeStats(selectedMeta.dateKey, m);
+        const weekSlice = getWeekDaysForDate(selectedMeta.dateObj);
+        const monthGrid = getDeviceCalendarMonthGrid(state.calendarYear, state.calendarMonth);
+        const todayMeta = getDateMetadata(formatDateKey(getDeviceToday()));
+
+        tabContent = `
+          <!-- Selector Semanal / Mensual estilo Apple Fitness -->
+          <div class="seg-row">
+            <button class="seg-btn ${state.fitnessViewMode === 'week' ? 'active' : ''}" onclick="state.fitnessViewMode='week';render()">
+              📅 Semana en Tiempo Real
+            </button>
+            <button class="seg-btn ${state.fitnessViewMode === 'month' ? 'active' : ''}" onclick="state.fitnessViewMode='month';render()">
+              🗓️ Calendario del Dispositivo
+            </button>
+          </div>
+
+          ${state.fitnessViewMode === 'week' ? `
+            <!-- Tira de 7 días (Lunes a Domingo de la semana activa en el calendario del dispositivo) -->
+            <div class="fitness-week-strip">
+              ${weekSlice.map((d, idx) => {
+                const dStats = computeDayRealtimeStats(d.dateKey, m);
+                const active = selectedMeta.dateKey === d.dateKey;
+                return `
+                  <div class="fitness-day-cell ${active ? 'active' : ''}" onclick="selectCalendarDate('${d.dateKey}')">
+                    <span style="font-size:10px;font-weight:800;color:${d.isToday ? '#38BDF8' : active ? 'var(--accent)' : 'var(--muted)'}">${d.weekdayShort}${d.isToday ? '•' : ''}</span>
+                    ${renderAppleFitnessRingsSVG(36, dStats.movePct, dStats.dietPct, dStats.hydroPct, 3.2)}
+                    <span style="font-size:10px;font-weight:700;color:${d.isToday ? '#38BDF8' : 'var(--text)'}">${d.dayOfMonth}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          ` : `
+            <!-- Calendario Mensual Real sincronizado con el reloj y calendario del dispositivo -->
+            <div class="card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <button class="week-btn" onclick="changeCalendarMonth(-1)">◀ Ant.</button>
+                <div style="text-align:center;">
+                  <div style="font-size:13.5px;font-weight:900;color:var(--text);text-transform:uppercase;">
+                    🗓️ ${monthGrid.monthName} ${monthGrid.year}
+                  </div>
+                  <div style="font-size:10px;color:var(--muted);font-weight:700;">
+                    Calendario del dispositivo (${monthGrid.daysInMonth} días)
+                  </div>
+                </div>
+                <button class="week-btn" onclick="changeCalendarMonth(1)">Sig. ▶</button>
+              </div>
+
+              <!-- Acceso directo al día de HOY del dispositivo + selector nativo de fecha del sistema -->
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+                <button class="week-btn" style="border-color:#38BDF8;color:#38BDF8;" onclick="jumpToDeviceToday()">
+                  📍 Ir a Hoy (${todayMeta.weekdayShort} ${todayMeta.dayOfMonth} ${todayMeta.monthName.slice(0,3)})
+                </button>
+                <label style="display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;color:var(--text-sec);background:var(--surface-elevated);padding:4px 8px;border-radius:8px;border:1px solid var(--border);cursor:pointer;">
+                  <span>📲 Fecha dispositivo:</span>
+                  <input type="date" value="${selectedMeta.dateKey}" onchange="selectCalendarDate(this.value)" style="background:transparent;border:none;color:var(--text);font-size:11px;font-weight:800;font-family:inherit;outline:none;cursor:pointer;" />
+                </label>
+              </div>
+
+              <!-- Cabecera L M X J V S D alineada con el calendario real -->
+              <div class="fitness-month-weekdays">
+                ${WEEKDAY_SHORT_ES.map(w => `<div>${w}</div>`).join('')}
+              </div>
+
+              <!-- Cuadrícula real del mes del dispositivo -->
+              <div class="fitness-month-grid">
+                ${Array.from({ length: monthGrid.leadingEmptySlots }).map(() => `
+                  <div class="fitness-month-cell empty"></div>
+                `).join('')}
+                ${monthGrid.days.map(d => {
+                  const dStats = computeDayRealtimeStats(d.dateKey, m);
+                  const active = selectedMeta.dateKey === d.dateKey;
+                  return `
+                    <div class="fitness-month-cell ${active ? 'active' : ''} ${d.isToday ? 'today' : ''}" onclick="selectCalendarDate('${d.dateKey}')">
+                      <span style="font-size:9px;font-weight:900;color:${d.isToday ? '#38BDF8' : active ? 'var(--accent)' : 'var(--muted)'}">
+                        ${d.dayOfMonth}${d.isToday ? ' HOY' : ''}
+                      </span>
+                      ${renderAppleFitnessRingsSVG(30, dStats.movePct, dStats.dietPct, dStats.hydroPct, 2.8)}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `}
+
+          <!-- Tarjeta Principal de Anillos de Actividad en Tiempo Real del Día Seleccionado -->
+          <div class="card" style="display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div class="step-badge">ANILLOS EN TIEMPO REAL • ${selectedMeta.weekdayFull.toUpperCase()} ${selectedMeta.dayOfMonth} DE ${selectedMeta.monthName.toUpperCase()} ${selectedMeta.year}</div>
+                <div class="card-title" style="margin:0;">Progreso del ${selectedMeta.weekdayFull} ${selectedMeta.dayOfMonth}/${selectedMeta.monthIndex + 1}/${selectedMeta.year}</div>
+              </div>
+              <span class="meal-badge" style="color:${selectedMeta.isToday ? '#38BDF8' : 'var(--accent)'}">${selectedMeta.isToday ? '📍 HOY' : '⚡ En Vivo'}</span>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:18px;justify-content:center;padding:6px 0;">
+              ${renderAppleFitnessRingsSVG(138, selStats.movePct, selStats.dietPct, selStats.hydroPct, 12)}
+              <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+                <div>
+                  <div style="font-size:11px;font-weight:900;color:#FA114F">🔴 QUEMA / MOVIMIENTO</div>
+                  <div style="font-size:17px;font-weight:900;color:var(--text)">${selStats.burned} / ${m.burn} <span style="font-size:11px;color:var(--muted)">KCAL (${selStats.movePct}%)</span></div>
+                </div>
+                <div>
+                  <div style="font-size:11px;font-weight:900;color:#92E82A">🟢 DIETA CUMPLIDA</div>
+                  <div style="font-size:17px;font-weight:900;color:var(--text)">${selStats.consumed} / ${m.consume} <span style="font-size:11px;color:var(--muted)">KCAL (${selStats.dietPct}%)</span></div>
+                </div>
+                <div>
+                  <div style="font-size:11px;font-weight:900;color:#00D7FF">🔵 HIDRATACIÓN & STACK</div>
+                  <div style="font-size:17px;font-weight:900;color:var(--text)">${selStats.waterL} / ${m.waterLiters} <span style="font-size:11px;color:var(--muted)">L (${selStats.hydroPct}%)</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botones rápidos para actualizar este día en directo o ir a sus comidas/rutinas -->
+            <div style="display:flex;gap:7px;flex-wrap:wrap;">
+              <button class="seg-btn" style="padding:8px;font-size:11.5px;border-color:#00D7FF;color:#00D7FF;" onclick="addWaterToDay('${selectedMeta.dateKey}', 1)">
+                💧 +1 Vaso Agua (${selectedMeta.dayOfMonth}/${selectedMeta.monthIndex + 1})
+              </button>
+              <button class="seg-btn" style="padding:8px;font-size:11.5px;border-color:#92E82A;color:var(--accent);" onclick="state.tab='diet';render()">
+                🥗 Registrar Comidas (${selectedMeta.dayOfMonth}/${selectedMeta.monthIndex + 1})
+              </button>
+              <button class="seg-btn" style="padding:8px;font-size:11.5px;border-color:#FA114F;color:var(--orange);" onclick="state.tab='routines';render()">
+                🏋️ Registrar Rutina (${selectedMeta.dayOfMonth}/${selectedMeta.monthIndex + 1})
+              </button>
+            </div>
+
+            <!-- Desglose en tiempo real de lo registrado en esta fecha del calendario -->
+            <div class="recipe-box" style="margin:0;">
+              <div style="font-weight:800;color:var(--text);margin-bottom:4px;">🍽️ Comidas registradas el ${selectedMeta.weekdayFull} ${selectedMeta.dayOfMonth} de ${selectedMeta.monthName}:</div>
+              ${selStats.foods.length === 0
+                ? `<div style="color:var(--muted);margin-bottom:8px;">Aún no has marcado comidas en esta fecha (${selectedMeta.dayOfMonth}/${selectedMeta.monthIndex + 1}/${selectedMeta.year}). Ve a Dietas y pulsa "+ Registrar" para ver subir el círculo verde en tiempo real.</div>`
+                : selStats.foods.map(fItem => `<div style="color:var(--accent);font-weight:700;margin-bottom:3px;">• ${fItem.title} (+${fItem.cals} kcal)</div>`).join('')
+              }
+
+              <div style="font-weight:800;color:var(--text);margin:8px 0 4px;">🏋️ Entrenamientos registrados el ${selectedMeta.weekdayFull} ${selectedMeta.dayOfMonth} de ${selectedMeta.monthName}:</div>
+              ${selStats.exercises.length === 0
+                ? `<div style="color:var(--muted);">Aún no has registrado rutina en esta fecha. Ve a Rutinas y complétala para ver subir el círculo rojo en tiempo real.</div>`
+                : selStats.exercises.map(exItem => `<div style="color:var(--orange);font-weight:700;margin-bottom:3px;">• ${exItem.title} (-${exItem.cals} kcal)</div>`).join('')
+              }
+            </div>
+          </div>
+        `;
+      }
+
+      // ================= PESTAÑA 4: AJUSTES ("PERFIL Y DATOS" + "PERSONALIZAR") =================
+      else if (state.tab === 'settings') {
+        tabContent = `
+          <div class="seg-row">
+            <button class="seg-btn ${state.settingsSubTab === 'profile' ? 'active' : ''}" onclick="state.settingsSubTab='profile';render()">
+              👤 Perfil y Datos
+            </button>
+            <button class="seg-btn ${state.settingsSubTab === 'customize' ? 'active' : ''}" onclick="state.settingsSubTab='customize';render()">
+              🎨 Personalizar
+            </button>
+          </div>
+
+          ${state.settingsSubTab === 'profile' ? `
+            <div class="card" style="border-color:var(--accent);">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <div class="step-badge" style="margin:0;">🔐 SESIÓN GUARDADA AUTOMÁTICAMENTE</div>
+                  <div class="opt-title" style="font-size:14.5px;margin-top:2px;">Usuario activo: <span style="color:var(--accent)">@${state.currentUser || state.profile.name.toLowerCase()}</span></div>
+                  <div class="opt-sub">Todos tus datos, fotos y anillos quedan guardados en tu cuenta.</div>
+                </div>
+                <button class="btn-back" style="padding:7px 11px;font-size:11.5px;color:#EF4444;border-color:rgba(239,68,68,0.4);" onclick="handleLogoutUser()">
+                  🚪 Cerrar Sesión
+                </button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">📸 Foto de Perfil</div>
+              <div style="display:flex;align-items:center;gap:14px;margin:10px 0;">
+                <img src="${state.profilePhotoUrl}" style="width:68px;height:68px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);" />
+                <div>
+                  <div class="opt-title" style="font-size:16px;">${state.profile.name}</div>
+                  <div class="opt-sub">IMC: ${m.bmi} • Meta: ${state.profile.targetWeightKg} kg</div>
+                  <label style="display:inline-block;margin-top:6px;background:var(--surface-elevated);border:1px solid var(--border);padding:5px 10px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;color:var(--accent);">
+                    📁 Subir foto desde mi dispositivo
+                    <input type="file" accept="image/*" style="display:none" onchange="handleLocalPhotoUpload(event)" />
+                  </label>
+                </div>
+              </div>
+
+              <label class="label">🏋️‍♂️🥗 Gimnasio y Comida (6):</label>
+              <div style="display:grid;grid-template-columns:repeat(6, 1fr);gap:8px;margin-bottom:10px;">
+                ${FITNESS_FOOD_AVATARS.map(av => {
+                  const sel = state.profilePhotoUrl === av.url;
+                  return `
+                    <div onclick="state.profilePhotoUrl='${av.url}';render()" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
+                      <img src="${av.url}" class="avatar-thumb ${sel ? 'selected' : ''}" style="width:44px;height:44px;" />
+                      <span style="font-size:9.5px;font-weight:800;color:${sel ? 'var(--accent)' : 'var(--muted)'};text-align:center;">${av.label}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+              <label class="label">🦁🐺 Animales (6):</label>
+              <div style="display:grid;grid-template-columns:repeat(6, 1fr);gap:8px;">
+                ${ANIMAL_AVATARS.map(av => {
+                  const sel = state.profilePhotoUrl === av.url;
+                  return `
+                    <div onclick="state.profilePhotoUrl='${av.url}';render()" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
+                      <img src="${av.url}" class="avatar-thumb ${sel ? 'selected' : ''}" style="width:44px;height:44px;" />
+                      <span style="font-size:9.5px;font-weight:800;color:${sel ? 'var(--accent)' : 'var(--muted)'};text-align:center;">${av.label}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">⚖️ Personalizar Tus Datos</div>
+              <label class="label">Nombre</label>
+              <input class="input" value="${state.profile.name}" oninput="state.profile.name=this.value;saveCurrentUserState()" />
+
+              <div class="row-2">
+                <div>
+                  <label class="label">Peso Actual (kg)</label>
+                  <input class="input" type="number" value="${state.profile.weightKg}" oninput="updateNum('weightKg', this.value)" />
+                </div>
+                <div>
+                  <label class="label">Altura (cm)</label>
+                  <input class="input" type="number" value="${state.profile.heightCm}" oninput="updateNum('heightCm', this.value)" />
+                </div>
+              </div>
+
+              <label class="label">Alimentos Favoritos</label>
+              <input class="input" value="${state.preferences.favoriteFoods}" oninput="state.preferences.favoriteFoods=this.value;saveCurrentUserState()" />
+
+              <button class="btn-primary" style="margin-top:12px;" onclick="state.tab='diet';render()">
+                ✓ Guardar y Volver a Dietas
+              </button>
+
+              <button class="btn-back" style="width:100%;margin-top:8px;" onclick="state.stage='onboarding';state.onboardingStep=1;render()">
+                Abrir Asistente Inicial Completo (5 Pasos)
+              </button>
+            </div>
+          ` : `
+            <!-- APARTADO 2: PERSONALIZAR -->
+            <div class="card">
+              <div class="card-title">🔲 Estilo de Selectores (Tics)</div>
+              <div class="card-helper">Elige entre el diseño cuadrado moderno o el clásico redondeado:</div>
+              ${[
+                ['modern', '🔲 Moderno (Cuadrados limpios)', 'Casillas cuadradas de bordes definidos'],
+                ['classic', '⚪ Clásico (Círculos)', 'Selectores circulares tradicionales']
+              ].map(([k, t, s]) => {
+                const act = state.uiTickStyle === k;
+                return `
+                  <div class="opt-row ${act ? 'active' : ''}" onclick="state.uiTickStyle='${k}';render()">
+                    <div><div class="opt-title">${t}</div><div class="opt-sub">${s}</div></div>
+                    ${renderTick(act)}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="card">
+              <div class="card-title">🌓 Modo de Apariencia</div>
+              <div class="card-helper">Elige cómo quieres ver el fondo y los menús de GymTrack!:</div>
+              ${[
+                ['system', '📱 Predeterminado del Dispositivo', 'Cambia automáticamente según tu móvil'],
+                ['light', '☀️ Modo Claro (Fondo Blanco)', 'Interfaz luminosa blanca'],
+                ['dark', '🌙 Modo Oscuro (Dark Pro)', 'Fondo oscuro de alto contraste']
+              ].map(([k, t, s]) => {
+                const act = state.themePreference === k;
+                return `
+                  <div class="opt-row ${act ? 'active' : ''}" onclick="state.themePreference='${k}';render()">
+                    <div><div class="opt-title">${t}</div><div class="opt-sub">${s}</div></div>
+                    ${renderTick(act)}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="card">
+              <div class="card-title">🎨 Tema de Color de la App</div>
+              ${Object.entries(ACCENT_THEMES).map(([k, info]) => {
+                const act = state.accentKey === k;
+                return `
+                  <div class="opt-row ${act ? 'active' : ''}" onclick="state.accentKey='${k}';render()">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                      <span style="width:22px;height:22px;border-radius:6px;background:${info.hex};display:inline-block;"></span>
+                      <span class="opt-title">${info.name}</span>
+                    </div>
+                    ${renderTick(act)}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="card">
+              <div class="card-title">📸 Tus Fotos Registradas en Recetas</div>
+              <div class="opt-row ${state.showUserRecipePhotos ? 'active' : ''}" onclick="state.showUserRecipePhotos=!state.showUserRecipePhotos;render()">
+                <div>
+                  <div class="opt-title">Mostrar mis fotos subidas en las recetas</div>
+                  <div class="opt-sub">${state.showUserRecipePhotos ? 'Activado: se muestran las fotos que tú registres en cada receta' : 'Desactivado: ocultar temporalmente las fotos registradas'}</div>
+                </div>
+                ${renderTick(state.showUserRecipePhotos)}
+              </div>
+            </div>
+          `}
+        `;
+      }
+
+      // Icono SVG de 3 anillos concéntricos estilo Apple Fitness para la barra inferior
+      const fitnessRingsNavIcon = `
+        <svg width="21" height="21" viewBox="0 0 24 24" style="transform: rotate(-90deg);">
+          <circle cx="12" cy="12" r="10" fill="none" stroke="#FA114F" stroke-width="2.3" stroke-dasharray="52 15" stroke-linecap="round" />
+          <circle cx="12" cy="12" r="6.8" fill="none" stroke="#92E82A" stroke-width="2.3" stroke-dasharray="36 10" stroke-linecap="round" />
+          <circle cx="12" cy="12" r="3.6" fill="none" stroke="#00D7FF" stroke-width="2.3" stroke-dasharray="19 6" stroke-linecap="round" />
+        </svg>
+      `;
+
+      mount.innerHTML = `
+        <div class="app-header">
+          <div class="brand-row">
+            <div class="gt-logo-circle small"><span class="gt-logo-letters">GT!</span></div>
+            <img src="${state.profilePhotoUrl}" class="header-avatar" alt="Avatar" />
+            <div>
+              <div class="app-title">GymTrack!</div>
+              <div class="app-sub">Hola, ${state.profile.name}</div>
+            </div>
+          </div>
+          <button class="btn-back" style="padding:6px 12px;font-size:12px;${state.tab === 'settings' ? 'background:var(--accent);color:var(--on-accent);border-color:var(--accent)' : ''}" onclick="state.tab='settings';render()">
+            ⚙️ Ajustes
+          </button>
+        </div>
+
+        <div class="screen-body">
+          ${tabContent}
+        </div>
+
+        <div class="bottom-nav">
+          <button class="nav-btn ${state.tab === 'diet' ? 'active' : ''}" onclick="state.tab='diet';render()">
+            <span style="font-size:17px">🥗</span>Dietas
+          </button>
+          <button class="nav-btn ${state.tab === 'routines' ? 'active' : ''}" onclick="state.tab='routines';render()">
+            <span style="font-size:17px">🏋️</span>Rutinas
+          </button>
+          <button class="nav-btn ${state.tab === 'fitness_log' ? 'active' : ''}" onclick="state.tab='fitness_log';render()">
+            ${fitnessRingsNavIcon}
+            Registro
+          </button>
+          <button class="nav-btn ${state.tab === 'settings' ? 'active' : ''}" onclick="state.tab='settings';render()">
+            <span style="font-size:17px">⚙️</span>Ajustes
+          </button>
+        </div>
+      `;
+    }
+
+    function updateNum(k, v) {
+      const n = parseFloat(v);
+      if (!isNaN(n) && n > 0) { state.profile[k] = n; render(); }
+    }
+    function toggleAllergy(a) {
+      const idx = state.preferences.allergies.indexOf(a);
+      if (idx >= 0) state.preferences.allergies.splice(idx, 1);
+      else state.preferences.allergies.push(a);
+      render();
+    }
+    function toggleSupp(id) {
+      const idx = state.preferences.selectedSupplements.indexOf(id);
+      if (idx >= 0) state.preferences.selectedSupplements.splice(idx, 1);
+      else state.preferences.selectedSupplements.push(id);
+      render();
+    }
+    function toggleRecipe(key) {
+      state.expandedRecipeKey = state.expandedRecipeKey === key ? null : key;
+      render();
+    }
+
+    // Registra o desmarca una comida en la fecha seleccionada del calendario del dispositivo y actualiza los círculos en tiempo real
+    function toggleLogMealInPlace(rKey, title, cals, p, c, f) {
+      const dateKey = getDateKeyForActiveWeekday(state.selectedDay);
+      state.selectedDateKey = dateKey;
+      const dayRec = getDayRecordByDateKey(dateKey);
+      if (state.loggedMealsMap[rKey]) {
+        delete state.loggedMealsMap[rKey];
+        dayRec.foods = dayRec.foods.filter(item => item.rKey !== rKey);
+      } else {
+        state.loggedMealsMap[rKey] = true;
+        dayRec.foods.unshift({ rKey, title, cals, p, c, f });
+      }
+      render();
+    }
+
+    function logWorkoutInPlace(title, cals) {
+      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dateKey = getDateKeyForActiveWeekday(state.selectedDay);
+      state.selectedDateKey = dateKey;
+      const dayRec = getDayRecordByDateKey(dateKey);
+      dayRec.exercises.unshift({ title, cals, time: now });
+      render();
+    }
+
+    function removeWorkoutFromDay(dateKey, exIdx) {
+      const rec = getDayRecordByDateKey(dateKey);
+      if (!rec) return;
+      rec.exercises.splice(exIdx, 1);
+      render();
+    }
+
+    function addCustomWorkoutFromInput() {
+      const nameEl = document.getElementById('custom-ex-name');
+      const kcalEl = document.getElementById('custom-ex-kcal');
+      if (!nameEl || !kcalEl) return;
+      const title = nameEl.value.trim();
+      const cals = parseInt(kcalEl.value, 10);
+      if (!title || isNaN(cals) || cals <= 0) return;
+      logWorkoutInPlace(title, cals);
+    }
+
+    initSavedSessionOnBoot();
+    render();
+  </script>
+</body>
+</html>
