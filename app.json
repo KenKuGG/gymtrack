@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "GymTrack!",
+    "slug": "gymtrack-app",
+    "version": "1.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.gymtrack.app",
+      "userInterfaceStyle": "automatic"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#000000"
+      },
+      "package": "com.gymtrack.app",
+      "userInterfaceStyle": "automatic"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
